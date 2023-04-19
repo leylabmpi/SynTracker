@@ -1,0 +1,7 @@
+NC_000913.2_Escherichia_coli_str._K-12_substr._MG1655,_complete_genome_525000:526000	ASM2516v1_CP001846.1	97.091	997	29	0	4	1000	659568	660564	0.0	1681	plus
+NC_000913.2_Escherichia_coli_str._K-12_substr._MG1655,_complete_genome_525000:526000	ASM2516v1_CP001846.1	97.091	997	29	0	4	1000	1852888	1853884	0.0	1681	plus
+NC_000913.2_Escherichia_coli_str._K-12_substr._MG1655,_complete_genome_525000:526000	SRR10358489_NODE_69_length_848_cov_34.026352	100.000	848	0	0	97	944	848	1	0.0	1567	minus
+NC_000913.2_Escherichia_coli_str._K-12_substr._MG1655,_complete_genome_525000:526000	SRR10358487_NODE_74_length_848_cov_24.546463	100.000	848	0	0	97	944	1	848	0.0	1567	plus
+NC_000913.2_Escherichia_coli_str._K-12_substr._MG1655,_complete_genome_525000:526000	SRR10358486_NODE_76_length_848_cov_34.657420	100.000	848	0	0	97	944	848	1	0.0	1567	minus
+NC_000913.2_Escherichia_coli_str._K-12_substr._MG1655,_complete_genome_525000:526000	SRR10358491_NODE_72_length_848_cov_15.758669	99.882	848	1	0	97	944	848	1	0.0	1561	minus
+NC_000913.2_Escherichia_coli_str._K-12_substr._MG1655,_complete_genome_525000:526000	SRR10358488_NODE_72_length_848_cov_44.560333	99.882	848	1	0	97	944	848	1	0.0	1561	minus

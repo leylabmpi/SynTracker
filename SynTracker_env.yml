@@ -1,0 +1,10 @@
+name: SynTracker
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - r
+dependencies:
+  - r-base=4.0.5
+  - bioconductor-decipher
+  - r-tidyverse=1.3.0
