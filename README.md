@@ -74,5 +74,6 @@ save RDS: should RDS image of be saved for the run (yes/no : "--intermediate"/"-
 set.seed : should the subsampling of n regions per pairwise be random or not ("--use.setseed", "--setseed.off").  If not provided the script fails. #IMPORTANT! This flag temporarily does not ifluence the run!
 metadata : metadata file, should include the sample ID, and any other relevant fields. Optional.  
 ```
-**Example using the provided input data:
+**Example using the provided input data:**
+
 `Rscript SynTracker.R output/blastcmddb_output/ final_syntracker_output/ 8 --no_indermediate --use.setseed`
