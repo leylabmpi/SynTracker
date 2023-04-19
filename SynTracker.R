@@ -17,16 +17,15 @@ source("add_metadata_fields.R")
 ############################
 
 # user inputs required (args)
-# 1. working dir
-# 2. input library (blastcmddb folder)
-# 3. number of cores
-# 4. Flag: save RDS/not save RDS ("--intermediate", "--no_indermediate"). If not provided the script fails
-# 5. Flag: use set.seed or not for the subsampling of n regions: ("--use.setseed", "--setseed.off").  If not provided the script fails 
-# 6. metadata: metadata file, should include the sample ID, and any other relevant fields 
+# 1. input library (blastcmddb folder)
+# 2. number of cores
+# 3. Flag: save RDS/not save RDS ("--intermediate", "--no_indermediate"). If not provided the script fails
+# 4. Flag: use set.seed or not for the subsampling of n regions: ("--use.setseed", "--setseed.off").  If not provided the script fails 
+# 5. metadata: metadata file, should include the sample ID, and any other relevant fields 
 
 args <- commandArgs(trailingOnly = TRUE) #user input: is inherited from bash script flags
-working_directory<-args[1]
-blastcmddb_directory<-args[2]
+blastcmddb_directory<-args[1]
+output_folder<-args[2]
 core_number<-args[3]
 save_intermediate_objects<-args[4]
 stopifnot(save_intermediate_objects %in% c("--intermediate", "--no_indermediate")) 
@@ -44,12 +43,11 @@ if(length(args)==6) {
 ####################
 #.   Define and create folders
 ####################
-#blastcmddb_directory<-"/ebio/abt3_projects/Strain_tracking_synteny_blocks/data/GitHub_example_data/test_run_output/blastcmddb_output" #take it off once done with testing
-#working_directory<-"/ebio/abt3_projects/Strain_tracking_synteny_blocks/envs/R_env/for_github/code"
-setwd(working_directory)
-output_folder<-paste0(working_directory, "/final_output/") 
-temp_file_folder<-paste0(working_directory, "/R_temp_rstudio")
-intermediate_file_folder<-paste0(temp_file_folder, "/intermediate_objects_rstudio/")
+
+#setwd(working_directory)
+#output_folder<-paste0(working_directory, "/final_output/") 
+temp_file_folder<-paste0(output_folder, "/R_temp")
+intermediate_file_folder<-paste0(temp_file_folder, "/intermediate_objects/")
 if (!dir.exists(output_folder)) {
   dir.create(output_folder)
 } else {

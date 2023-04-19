@@ -24,6 +24,8 @@ output=$(readlink -f "$output") #get the full path of the output folder
 
 
 # step 0: run the python script first, to find the "central_regions"
+rm -rf "$output"
+mkdir "$output"
 mkdir "$output/tmp"
 central_regions="$output/central_regions/"
 
