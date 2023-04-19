@@ -7,9 +7,6 @@
 #requirements
 library(DECIPHER)
 library(tidyverse)
-#library(dplyr)
-#library(purrr)
-#library(stringr)
 library(parallel)
 library(tools)
 
@@ -26,12 +23,7 @@ source("add_metadata_fields.R")
 # 4. Flag: save RDS/not save RDS ("--intermediate", "--no_indermediate"). If not provided the script fails
 # 5. Flag: use set.seed or not for the subsampling of n regions: ("--use.setseed", "--setseed.off").  If not provided the script fails 
 # 6. metadata: metadata file, should include the sample ID, and any other relevant fields 
-#args<-c(getwd(), 
- #       "/ebio/abt3_projects/Strain_tracking_synteny_blocks/envs/R_env/for_github/code/blastcmddb_output",
-  #      12,
-   #     "--no_indermediate",
-    #    "--setseed.off"
-     #   )
+
 args <- commandArgs(trailingOnly = TRUE) #user input: is inherited from bash script flags
 working_directory<-args[1]
 blastcmddb_directory<-args[2]
@@ -55,7 +47,7 @@ if(length(args)==6) {
 #blastcmddb_directory<-"/ebio/abt3_projects/Strain_tracking_synteny_blocks/data/GitHub_example_data/test_run_output/blastcmddb_output" #take it off once done with testing
 #working_directory<-"/ebio/abt3_projects/Strain_tracking_synteny_blocks/envs/R_env/for_github/code"
 setwd(working_directory)
-output_folder<-paste0(working_directory, "/Synteny_final_output/") 
+output_folder<-paste0(working_directory, "/final_output/") 
 temp_file_folder<-paste0(working_directory, "/R_temp_rstudio")
 intermediate_file_folder<-paste0(temp_file_folder, "/intermediate_objects_rstudio/")
 if (!dir.exists(output_folder)) {
