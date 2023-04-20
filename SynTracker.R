@@ -90,9 +90,10 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
   for (i in 1:length(filepaths)) {gene_names[i]<-basename(filepaths[i])} # extract the file from the path
   gene_names<-file_path_sans_ext(gene_names) #remove file extension
   
-  objects<-mcmapply(synteny_analysis, filepaths, gene_names, tmp_folder, SIMPLIFY = F, mc.preschedule=T, mc.cores=core_number) #change number of cores if needed
+  objects<-mcmapply(synteny_analysis, filepaths, gene_names, tmp_folder, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number) 
   names(objects)<-gene_names 
   bad_objects_elements <- sapply(objects, inherits, what = "try-error") #identify iterations of synteny_anlysis that failed for some reason.
+  
   objects<-objects[!bad_objects_elements] # and filter these elements out...
   narrow<-Filter(function(x) nrow(x) > 1, objects) #filter elemnts with comparisons of less than 2 valid seqs, if this happened.
   #print(length(objects))
@@ -103,7 +104,7 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
   }
   
   # second part: Process synteny objects
-  dfs<-mcmapply(synteny_scores,narrow, SIMPLIFY = F, mc.preschedule=F,mc.cores=core_number) #change number of cores if needed
+  dfs<-mcmapply(synteny_scores,narrow, SIMPLIFY = F, mc.preschedule=F,mc.cores=core_number) 
   bad_dfs_elements <- sapply(dfs, inherits, what = "try-error") #identify iterations of synteny scores that failed for some reason. Mostly (although very rare), those are two hits for the same region
   dfs<-dfs[!bad_dfs_elements] # and filter these elements out...
   
@@ -118,11 +119,13 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
   # i.e. sampleX-sampleY will always be like that and not sampleY-sampleX ==> if the order is not uniform it will be treated as two different comparisons
   big_dfs<-big_dfs %>% mutate(replaced = ifelse(sample2>sample1, "yes", "no")) # add a column specifing if the order of sample 1 and 2 should be replaced (for the sake of Grouping correctly in the next lines)
  
-  #change the order of sample specific fields: YOU SHOULD modify them if your metadata file contains different numer of fields
+  #change the order of sample specific fields
    big_organized_dfs<-big_dfs %>% 
      mutate(temp=ifelse(replaced == "yes", as.character(sample1), "no need"),  #if replaced == yes: temp will hold sample1
             sample1 = ifelse(replaced == "yes", as.character(sample2), as.character(sample1)), #sample1 will hold sample2
             sample2=ifelse(replaced == "yes", temp, as.character(sample2)))  #sample2 will hold temp (the original sample1...)
+            
+  big_organized_dfs<- big_organized_dfs %>% arrange(sample1,sample2,position_counter) #arrange the order of rows in the table: This is done as in different Operating systems the order is different => leads to different subsampling, even if set.seed() is the same          
   
   species_temp_folder=paste0(intermediate_file_folder,"/",path_names)     
   dir.create(species_temp_folder)

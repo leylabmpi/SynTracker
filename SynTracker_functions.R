@@ -63,18 +63,6 @@ synteny_scores<- function(synteny_object) {
                              "length2" = integer() , 
                              "overlap" = integer(), #accomulative length of overlapping regions
                              "Blocks" = integer(), # number of synteny blocks per pairwise comparison
-                             #"GroupA1" = character(), 
-                             #"GroupA2" = character(),
-                             #"GroupB1" = character(),
-                             #"GroupB2" = character(),
-                             #"GroupC1" = character(), 
-                             #"GroupC2" = character(),
-                             #"GroupD1" = character(),
-                             #"GroupD2" = character(),
-                             #"is.same.GroupA" = logical(),
-                             #"is.same.GroupB" = logical(),
-                             #"is.same.GroupC" = logical(),
-                             #"is.same.GroupD" = logical(),
                              "synteny_score" = integer(), stringsAsFactors = FALSE)
 
   # for each two samples, create the values to be kept in the dataframe (assing to one row).
@@ -143,7 +131,6 @@ subsample_regions<-function(big_organized_dfs,subsampling_value) {
   set.seed(1) # user should decide whether set.seed should be commented or not: depends if you want to get repreducible subsampling or different in any run 
   newdf<-big_organized_dfs %>% 
     # pay attention to the grouping variable below - should match the groups specified in the "synteny_score" function
-    #group_by(sample1, sample2, GroupA1, GroupA2, GroupB1, GroupB2, GroupC1, GroupC2, GroupD1, GroupD2, is.same.GroupA, is.same.GroupB, is.same.GroupC, is.same.GroupD) %>% 
     group_by(sample1, sample2) %>% 
     filter(n() > subsampling_value-1) %>%
     sample_n(subsampling_value) %>% #subsample "subsampling_value" regions from each group
