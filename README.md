@@ -11,15 +11,15 @@ Python
 
 ## Installation:
 ### From source:
-Download SynTrakcer latest release from: https://github.com/leylabmpi/SynTracker/releases.
+Download SynTracker latest release from: https://github.com/leylabmpi/SynTracker/releases.
 
 Extract the tar.gz file into the desired working-directory.
 
-Create a new conda environment using the ‘SynTracker_env.yml’ file (located in the root directory of SynTrakcer) using the following command:
+Create a new conda environment using the ‘SynTracker_env.yml’ file (located in the root directory of SynTracker) using the following command:
       `conda env create -f SynTracker_env.yml`
 
 Activate the newly created environment: 
-      `conda activate SynTrakcer`
+      `conda activate SynTracker`
 
 
 ## Input:
