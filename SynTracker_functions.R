@@ -29,9 +29,14 @@ synteny_analysis<-function(inpath, gene_name, tmp_folder) {
     if (lengths(seqs[i])>4800) {   #This number controls the minimal length of each sequence to be included in the analysis
       print(i)
       print(lengths(seqs[i]))
+      
       # The following line adds sequences to the DECIPHER DB: 
-      # the last argument controls length of the name of the sequence (actually, the name of the sample/genome), modify to suit your naming format
-      Seqs2DB(seqs[i], "XStringSet", db, str_sub(names(seqs[i]),1,15)) 
+      ###########################
+      #   IMPORTANT:
+      # SPLITTING THE names(seqs[i]) yields the "sample.xxx" from the fasta header of the sequence - therefore only one sequence per sample will be used. 
+      # If the str_split is removed, potentially more than one contig per sample can be compared - i.e,, substrains in the same sample. 
+      Seqs2DB(seqs[i], "XStringSet", db, str_split(names(seqs[i]), "_")[[1]][1]) 
+      ###########################      
       flag<-flag+1
     }
   }

@@ -17,14 +17,15 @@ source("add_metadata_fields.R")
 ############################
 
 # user inputs required (args)
-# 1. input library (blastcmddb folder)
-# 2. number of cores
+# 1. input folder (output folder specified in find_overlapping_regions.sh )
+# 2. output  folder 
+# 3.number of cores
 # 3. Flag: save RDS/not save RDS ("--intermediate", "--no_indermediate"). If not provided the script fails
 # 4. Flag: use set.seed or not for the subsampling of n regions: ("--use.setseed", "--setseed.off").  If not provided the script fails 
 # 5. metadata: metadata file, should include the sample ID, and any other relevant fields 
 
 args <- commandArgs(trailingOnly = TRUE) #user input: is inherited from bash script flags
-blastcmddb_directory<-args[1]
+input_directory<-args[1]
 output_folder<-args[2]
 core_number<-args[3]
 save_intermediate_objects<-args[4]
@@ -40,12 +41,16 @@ if(length(args)==6) {
   cat("Running analysis without Metadata\n")
 }
 
+
 ####################
 #.   Define and create folders
 ####################
 
 #setwd(working_directory)
 #output_folder<-paste0(working_directory, "/final_output/") 
+blastcmddb_directory<- paste0(input_directory, "blastcmddb_output/")
+
+old_new_names<-read.table(file=paste0(input_directory, "combined_targets/names_dictionary.tab"), header = T, sep="\t")
 temp_file_folder<-paste0(output_folder, "/R_temp")
 intermediate_file_folder<-paste0(temp_file_folder, "/intermediate_objects/")
 if (!dir.exists(output_folder)) {
@@ -115,6 +120,16 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
   improved_dfs<-map2(dfs, names(dfs), add_names)
   big_dfs<-bind_rows(improved_dfs)  # bind to one dataframe
   
+  #####
+  # add the original sample names to the table (changed in the second step of "find_overlapping_regions.sh")
+  #####
+  print("adding new columns now")  
+  old_new_names_minimal<-old_new_names %>% select(new.sample.name, old.sample.name) %>% distinct(new.sample.name, old.sample.name)
+  big_dfs<-left_join(big_dfs, old_new_names_minimal, by=c("sample1"= "new.sample.name")) %>%  
+    dplyr::rename("temp sample1"="sample1", "sample1" := "old.sample.name" ) 
+  big_dfs<-left_join(big_dfs, old_new_names_minimal, by=c("sample2"= "new.sample.name")) %>%
+    dplyr::rename("temp sampl2"="sample2", "sample2" := "old.sample.name" ) 
+  
   # change order of sample1 and sample2, according to some rules, so that the order will be uniform throughout the table
   # i.e. sampleX-sampleY will always be like that and not sampleY-sampleX ==> if the order is not uniform it will be treated as two different comparisons
   big_dfs<-big_dfs %>% mutate(replaced = ifelse(sample2>sample1, "yes", "no")) # add a column specifing if the order of sample 1 and 2 should be replaced (for the sake of Grouping correctly in the next lines)
@@ -126,6 +141,8 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
             sample2=ifelse(replaced == "yes", temp, as.character(sample2)))  #sample2 will hold temp (the original sample1...)
             
   big_organized_dfs<- big_organized_dfs %>% arrange(sample1,sample2,position_counter) #arrange the order of rows in the table: This is done as in different Operating systems the order is different => leads to different subsampling, even if set.seed() is the same          
+  
+
   
   species_temp_folder=paste0(intermediate_file_folder,"/",path_names)     
   dir.create(species_temp_folder)
@@ -164,8 +181,6 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
   if (exists("metadata")) {
     cat("adding metadata fields\n")
     grouped_list<-mapply(add_metadata,grouped_list, MoreArgs = list(metadata), SIMPLIFY = FALSE)
-    #grouped_list<-mapply(add_metadata,grouped_list, metadata, SIMPLIFY = FALSE)
-    
   }
   
   cat("Finished synteny analysis for:", path_names, sep = "\n" )
@@ -182,19 +197,6 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
 }
   
 
-#outlist<-list(grouped_list, grouped_list_figs, big_organized_dfs)
-#names(outlist)<-c("pairwise comparison tables", "pairwise comparison figures", "Final table ungrouped")
-#return(outlist)
 
 
 real_tetsting<-mapply(external_func, paths, pathnames, MoreArgs = list(metadata, temp_file_folder, core_number, save_intermediate_objects, set_seed_arg), SIMPLIFY = F)
-
-
-#write the output tables to files. 
-#dir.create("output_grrr")
-#for(i in 1:length(real_tetsting)){
-#  dir.create(paste0("output_grrr","/",names(real_tetsting[i])))
-#  for(idx in 1:length(real_tetsting[[i]])){
-#    write.table(real_tetsting[[i]][[idx]],paste0("output_grrr/",names(real_tetsting[i]),"/",names(real_tetsting[[i]][idx]),".csv"), sep = "\t",row.names = FALSE)
-#  }
-#}

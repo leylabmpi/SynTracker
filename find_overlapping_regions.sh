@@ -38,21 +38,18 @@ python central_regions.py $references $central_regions
 # The sample name should not include any special characters!!!
 # The file name should not include "/" or ".", other special characters are accepted.  
 
-# step 1: add sample names to the fasta headers in each genome/assembly fasta files 
+# step 1: run script to:
+#	a. change sample names (i.e., assemblies/genomes) to Sample.xxx
+#	b. change fasta headers to contig.xxx
+#	c. merge fasta files to one file
+#	d. create a table with old and new names. 
+
 echo "starting merging metagenomes/genome files"
-rm -f "$output/tmp/combined_genomes.fasta"
-for infile in $target/*; do
-	insert="$(basename "${infile%.*}")"
-	sed "s/>/>${insert}_/" < "$infile" >> "$output/tmp/combined_genomes_long.fasta" ;
-done;
 
-# Make another file, with shorter headers (in spades format), to avoid downstream blastcmddb errors (header length is limited)
-sed "s/_saliva__contig_/_/" "$output/tmp/combined_genomes_long.fasta" >> "$output/tmp/combined_genomes.fasta" ;
-sed -i "s/saliva-//gi" "$output/tmp/combined_genomes.fasta" ;
+combined_output="$output/combined_targets/"
+python old_to_new_names.py $target $combined_output
 
-#sed "s/cov/ /" "$output/tmp/combined_genomes_long.fasta" >> "$output/tmp/combined_genomes.fasta" ;
-
-echo " Merging metagenome/genome files is complete"
+echo "Merging metagenome/genome files is complete"
 
 
 # step 2:  Make a blast database, from all the contigs. 
@@ -61,7 +58,7 @@ newdir="$output/blastDB"
 echo "newdir: $newdir"
 rm -rf "$newdir"
 mkdir "$newdir"
-makeblastdb -in  "$output/tmp/combined_genomes.fasta" -out "$newdir/GroupsDB" -title "GroupsDB" -parse_seqids -dbtype nucl
+makeblastdb -in  "$combined_output/combined_renamed_genomes.fasta" -out "$newdir/GroupsDB" -title "GroupsDB" -parse_seqids -dbtype nucl
 
 echo "Making blast DB is complete"
 
