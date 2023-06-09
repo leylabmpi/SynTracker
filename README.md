@@ -58,7 +58,7 @@ Each step is executed by a single command.
         -l : optional, the length of flanking sequences (on the BLAST hit), default is 2000 bp. 
 
 **Example using the provided input data:**
-`./find_overlapping_regions.sh  -t Sample_input/Target_genomes -r Sample_input/Reference_genomes/ -o first_step_output/`
+`./find_overlapping_regions.sh  -t Sample_input/Target_genomes/ -r Sample_input/Reference_genomes/ -o first_step_output/`
 
 #### b.	Second command:
 **From the folder in which the SynTracker scripts are located, execute:**
