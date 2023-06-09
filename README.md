@@ -70,7 +70,7 @@ Rscript SynTracker.R  [input directory] [output directory] [number of cores] [sa
 input directory: The path of the output directory specified in step a. 
 output directory: The path of the final output directory.
 number of cores : 
-save RDS: should RDS image of be saved for the run (yes/no : "--intermediate"/"--no_indermediate"). If not provided the script fails
+save RDS: should RDS image of be saved for the run (yes/no : "--intermediate"/"--no_intermediate"). If not provided the script fails
 set.seed : should the subsampling of n regions per pairwise be random or not ("--use.setseed", "--setseed.off").  If not provided the script fails. #IMPORTANT! This flag temporarily does not ifluence the run!
 metadata : metadata file, should include the sample ID, and any other relevant fields. Optional.  
 ```
