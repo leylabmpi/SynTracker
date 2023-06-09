@@ -41,7 +41,7 @@ The metadata file should be a tab delimited file. One of the columns should cont
 ## Usage: 
 
 The SynTracker pipeline is divided to two main steps:
-a. Fragmentation of the reference genomes and execution of BLASTn search against the target genomes/metagenomes.
+a. Fragmentation of the reference genomes and execution of BLASTn search against the target genomes (isolate genomes or MAGs).
 b. Calculation of average pairwise synteny scores (APSS).  
 Each step is executed by a single command. 
 
