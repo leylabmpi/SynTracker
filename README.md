@@ -32,7 +32,7 @@ If using more than one reference genome (i.e., analyzing more than one species p
 These data are the metagenomic assemblies (or assembled genomes, if those are studied) that would be compared.
 These data should be organized in per-sample assembly files - i.e., all the contigs assembled from sample X would be kept in a single file. If genomes are to be compared, each genome will be stored in a single fasta file. 
 All files should be stored in the same directory (refered below as the "target directory"). 
-**The directory `Sample_input/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.**
+**The directory `Sample_input/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the installation.**
    
 #### c.	Metadata file (optional): 
 The metadata file contains information regarding the genomes/assemblies to be compared. 
