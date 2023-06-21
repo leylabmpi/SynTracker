@@ -20,7 +20,7 @@ source("add_metadata_fields.R")
 # 1. input folder (output folder specified in find_overlapping_regions.sh )
 # 2. output  folder 
 # 3.number of cores
-# 3. Flag: save RDS/not save RDS ("--intermediate", "--no_indermediate"). If not provided the script fails
+# 3. Flag: save RDS/not save RDS ("--intermediate", "--no_intermediate"). If not provided the script fails
 # 4. Flag: use set.seed or not for the subsampling of n regions: ("--use.setseed", "--setseed.off").  If not provided the script fails 
 # 5. metadata: metadata file, should include the sample ID, and any other relevant fields 
 
@@ -29,7 +29,7 @@ input_directory<-args[1]
 output_folder<-args[2]
 core_number<-args[3]
 save_intermediate_objects<-args[4]
-stopifnot(save_intermediate_objects %in% c("--intermediate", "--no_indermediate")) 
+stopifnot(save_intermediate_objects %in% c("--intermediate", "--no_intermediate")) 
 set_seed_arg<-args[5]
 stopifnot(set_seed_arg %in% c("--use.setseed", "--setseed.off")) 
 if(length(args)==6) {
