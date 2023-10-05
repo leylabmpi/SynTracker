@@ -29,7 +29,7 @@ jump_length = region_length + flanking_length * 2
 # BLAST related parameters
 minimal_coverage = 70
 minimal_identity = 97
-num_threads = 8
+blast_num_threads = 2
 minimal_hits_num = 2
 
 # Run related parameters
