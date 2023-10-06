@@ -31,6 +31,7 @@ minimal_coverage = 70
 minimal_identity = 97
 blast_num_threads = 2
 minimal_hits_num = 2
+cpu_num = 8
 
 # Run related parameters
 running_mode = "new"  # Mode can be 'new' or 'continue'

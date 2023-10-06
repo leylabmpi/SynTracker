@@ -33,6 +33,10 @@ def parse_arguments():
                         help="The length of the flanking sequences (from both sides of the BLAST hit). "
                              "(Optional, default=" + str(config.flanking_length) + ")",
                         type=int, default=config.flanking_length)
+    parser.add_argument("-cores", metavar="number_of_cores",
+                        help="The number of cores to use for the parallelization of the BLAST-related stages. "
+                             "(Optional, default is the number of computer available cores).",
+                        type=int)
 
     # Parse the given arguments
     args = parser.parse_args()
@@ -61,7 +65,7 @@ def parse_arguments():
 
         # Not absolute path -> turn it into absolute
         if not os.path.isabs(input_ref_dir):
-            config.input_target_dir = os.path.abspath(input_ref_dir) + "/"
+            config.input_ref_dir = os.path.abspath(input_ref_dir) + "/"
         # Absolute path
         else:
             config.input_ref_dir = input_ref_dir
@@ -78,6 +82,14 @@ def parse_arguments():
         else:
             error = "-mode ['new' | 'continue'] (Start a new run or continue a previous run that has been stopped).\n"
             return error
+
+    # Set the cpu number parameter
+    if args.cores is not None and args.cores > 0:
+        config.cpu_num = args.cores
+    # Get the computer's number of cores
+    else:
+        config.cpu_num = os.cpu_count()
+    print("\nNumber of computer cores to use: " + str(config.cpu_num))
 
     # Set the global variables according to the user's input
     config.output_dir = args.out

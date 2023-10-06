@@ -16,9 +16,9 @@ def main():
     # Get the working directory
     config.working_dir = os.getcwd()
 
-    # Get the number of available threads (for running BLAST)
-    cpu_num = os.cpu_count()
-    print("Number of computer cores = " + str(cpu_num))
+    # Get the computer's number of cores
+    #config.cpu_num = os.cpu_count()
+    #print("Number of computer cores: " + str(config.cpu_num))
 
     # Parse the command-line arguments
     error = parser.parse_arguments()
@@ -230,13 +230,13 @@ def main():
 
         # A loop over batches of processes in the size of the available number of threads
         batch_counter = 0
-        for batch_index in range(0, len(region_files_list), cpu_num):
+        for batch_index in range(0, len(region_files_list), config.cpu_num):
 
             batch_processes = []
             batch_counter += 1
 
             # A loop over the regions of a certain threads batch
-            for region_index in range(batch_index, batch_index+cpu_num):
+            for region_index in range(batch_index, batch_index+config.cpu_num):
 
                 if region_index < len(region_files_list):
 
