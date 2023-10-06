@@ -40,10 +40,16 @@ def parse_arguments():
     # Verify that the user provided a target directory
     if args.target is not None:
         input_target_dir = args.target
+
+        # Not absolute path -> turn it into absolute
         if not os.path.isabs(input_target_dir):
             config.input_target_dir = os.path.abspath(input_target_dir) + "/"
-        if not re.search(r"^(\S+)\/$", config.input_target_dir):
-            config.input_target_dir += "/"
+        # Absolute path
+        else:
+            config.input_target_dir = input_target_dir
+            # Add ending slash
+            if not re.search(r"^(\S+)\/$", input_target_dir):
+                config.input_target_dir += "/"
     else:
         error = "Error: you must provide a path to the target folder which contains metagenome assemblies or " \
                 "genomes (using -target)\n"
@@ -52,10 +58,16 @@ def parse_arguments():
     # Verify that the user provided a reference directory
     if args.ref is not None:
         input_ref_dir = args.ref
+
+        # Not absolute path -> turn it into absolute
         if not os.path.isabs(input_ref_dir):
-            config.input_ref_dir = os.path.abspath(input_ref_dir) + "/"
-        if not re.search(r"^(\S+)\/$", config.input_ref_dir):
-            config.input_ref_dir += "/"
+            config.input_target_dir = os.path.abspath(input_ref_dir) + "/"
+        # Absolute path
+        else:
+            config.input_ref_dir = input_ref_dir
+            # Add ending slash
+            if not re.search(r"^(\S+)\/$", input_ref_dir):
+                config.input_ref_dir += "/"
     else:
         error = "Error: you must provide a path to the references folder containing the reference genomes(using -ref)\n"
         return error
