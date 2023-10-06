@@ -33,12 +33,15 @@ def create_unique_names():
                 "new contig header" + "\n")
 
     for input_file in os.listdir(target_dir):
-        if re.search(r"^.DS", input_file):
+
+        input_path = target_dir + input_file
+
+        if re.search(r"^\.", input_file) or os.path.isfile(input_path) is False:
             continue
+
         file_counter += 1
         newfile_name = 'Sample.' + str(file_counter)
 
-        input_path = target_dir + input_file
         old_sample_name = os.path.splitext(input_file)[0]
 
         contig_counter = 0  # zero the contig counter
