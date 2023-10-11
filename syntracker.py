@@ -16,10 +16,6 @@ def main():
     # Get the working directory
     config.working_dir = os.getcwd()
 
-    # Get the computer's number of cores
-    #config.cpu_num = os.cpu_count()
-    #print("Number of computer cores: " + str(config.cpu_num))
-
     # Parse the command-line arguments
     error = parser.parse_arguments()
 

@@ -75,7 +75,7 @@ options:
 **Example using the provided input data:**
 `python syntracker.py -target Sample_input/Target_genomes -ref Sample_input/Reference_genomes/ -out first_step_output/`
 
-#### b.	Second command:
+### b.	Second command:
 **From the folder in which the SynTracker scripts are located, execute:**
 ```
 Rscript SynTracker.R  [input directory] [output directory] [number of cores] [save RDS] [set.seed] [metadata file]
