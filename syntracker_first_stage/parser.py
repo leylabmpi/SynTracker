@@ -23,20 +23,22 @@ def parse_arguments():
                         help="The running mode: 'new' or 'continue' (default='new') "
                              "(Start a new run or continue a previous run that has been stopped).",
                         type=str, default=config.running_mode)
-    parser.add_argument("-identity", metavar="blast_identity",
-                        help="Minimal blast identity (optional, default=" + str(config.minimal_identity) + ")",
-                        type=int, default=config.minimal_identity)
-    parser.add_argument("-coverage", metavar="blast_coverage",
-                        help="Minimal blast coverage (optional, default=" + str(config.minimal_coverage) + ")",
-                        type=int, default=config.minimal_coverage)
-    parser.add_argument("-length", metavar="flanking_sequences_length",
-                        help="The length of the flanking sequences (from both sides of the BLAST hit). "
-                             "(Optional, default=" + str(config.flanking_length) + ")",
-                        type=int, default=config.flanking_length)
     parser.add_argument("-cores", metavar="number_of_cores",
                         help="The number of cores to use for the parallelization of the BLAST-related stages. "
                              "(Optional, default is the number of computer available cores).",
                         type=int)
+    parser.add_argument("--identity", metavar="blast_identity",
+                        help="Minimal blast identity (optional, default=" + str(config.minimal_identity) + ")",
+                        type=int, default=config.minimal_identity)
+    parser.add_argument("--coverage", metavar="blast_coverage",
+                        help="Minimal blast coverage (optional, default=" + str(config.minimal_coverage) + ")",
+                        type=int, default=config.minimal_coverage)
+    parser.add_argument("--length", metavar="flanking_sequences_length",
+                        help="The length of the flanking sequences (from both sides of the BLAST hit). "
+                             "(Optional, default=" + str(config.flanking_length) + ")",
+                        type=int, default=config.flanking_length)
+    parser.add_argument("--save_intermediate", help="Saves R intermediate data structures",
+                        action='store_true', default=False)
 
     # Parse the given arguments
     args = parser.parse_args()
@@ -169,7 +171,6 @@ def read_conf_file():
                 m = re.search("^(\S+)\t(\S+)\n", line)
                 genome_name = m.group(1)
                 genome_file = m.group(2)
-                #print("Genome name: " + genome_name)
                 config.genomes_dict[genome_name] = dict()
                 config.genomes_dict[genome_name]['input_file'] = genome_file
                 config.genomes_dict[genome_name]['processed'] = 0
