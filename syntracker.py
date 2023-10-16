@@ -61,10 +61,16 @@ def main():
         out_param.write("\nReference genomes directory: " + config.input_ref_dir + "\n")
         out_param.write("Target genomes directory: " + config.input_target_dir + "\n")
         out_param.write("Output directory: " + config.main_output_path + "\n")
+        if config.is_metadata:
+            out_param.write("Metadata file path: " + config.metadata_file_path + "\n")
         out_param.write("\nRegion length: " + str(config.region_length) + "\n")
         out_param.write("Flanking regions length: " + str(config.flanking_length) + "\n")
         out_param.write("\nMinimal coverage: " + str(config.minimal_coverage) + "\n")
         out_param.write("Minimal identity: " + str(config.minimal_identity) + "\n")
+        if config.save_intermediate:
+            out_param.write("\nSave intermediate: " + str(config.save_intermediate) + "\n")
+        if config.is_set_seed:
+            out_param.write("Seed: " + str(config.seed_num) + "\n")
 
         ################################################################
         # Take care of the naming issues of the target genomes:

@@ -19,6 +19,9 @@ def parse_arguments():
                              + str(config.output_dir) + " will be created under the current directory). "
                              "IMPORTANT: if this directory already exists, it will be written over!!!",
                         type=str, default=config.output_dir)
+    parser.add_argument("-metadata", metavar="metadata_file",
+                        help="Path to a metadata file (optional). The file should be in CSV format and must include "
+                             "the sample ID.", type=str)
     parser.add_argument("-mode", metavar="[new|continue]",
                         help="The running mode: 'new' or 'continue' (default='new') "
                              "(Start a new run or continue a previous run that has been stopped).",
@@ -37,8 +40,12 @@ def parse_arguments():
                         help="The length of the flanking sequences (from both sides of the BLAST hit). "
                              "(Optional, default=" + str(config.flanking_length) + ")",
                         type=int, default=config.flanking_length)
-    parser.add_argument("--save_intermediate", help="Saves R intermediate data structures",
+    parser.add_argument("--save_intermediate", help="Saves R intermediate data structures for debugging purposes",
                         action='store_true', default=False)
+    parser.add_argument("--set_seed", metavar="integer_for_seed",
+                        help="An integer number to set the seed for subsampling of n regions per pairwise "
+                             "(when the same seed is set, the subsampling is reproducable). "
+                             "This is an optional argument, by default no seed is used.", type=int)
 
     # Parse the given arguments
     args = parser.parse_args()
@@ -78,6 +85,20 @@ def parse_arguments():
         error = "Error: you must provide a path to the references folder containing the reference genomes(using -ref)\n"
         return error
 
+    # Set the metadata file (if any)
+    if args.metadata is not None:
+        config.metadata_file_path = args.metadata
+        config.is_metadata = True
+
+        # Not absolute path -> turn it into absolute
+        if not os.path.isabs(config.metadata_file_path):
+            config.metadata_file_path = os.path.abspath(config.metadata_file_path) + "/"
+        # Absolute path
+        else:
+            # Add ending slash
+            if not re.search(r"^(\S+)\/$", config.metadata_file_path):
+                config.metadata_file_path += "/"
+
     if args.mode is not None:
         if args.mode == "new" or args.mode == "continue":
             config.running_mode = args.mode
@@ -110,6 +131,16 @@ def parse_arguments():
         error = "Error: the minimal coverage for BLAST should be an integer between 0 and 100\n"
         return error
 
+    if args.save_intermediate:
+        config.save_intermediate = True
+
+    if args.set_seed is not None and args.set_seed > 0:
+        config.is_set_seed = True
+        config.seed_num = args.set_seed
+    else:
+        error = "Error: if you use the '--set_seed' option, it must be followed by an integer to set the seed with.\n"
+        return error
+
     return error
 
 
@@ -118,10 +149,12 @@ def read_conf_file():
     ref_dir = ""
     target_dir = ""
     output_dir = ""
+    metadata_file = ""
     region_length = ""
     flanking_length = ""
     minimal_coverage = ""
     minimal_identity = ""
+    seed = ""
     error = ""
 
     with open(config.conf_file_path) as read_conf:
@@ -144,6 +177,11 @@ def read_conf_file():
                 if m:
                     output_dir = m.group(1)
 
+            elif re.search("^Metadata", line):
+                m = re.search("^Metadata.+\:\s(\S+)\n", line)
+                if m:
+                    metadata_file = m.group(1)
+
             elif re.search("^Region", line):
                 m = re.search("^Region.+\:\s(\d+)\n", line)
                 if m:
@@ -164,6 +202,14 @@ def read_conf_file():
                 if m:
                     minimal_identity = m.group(1)
 
+            elif re.search("^Save intermediate", line):
+                config.save_intermediate = True
+
+            elif re.search("^Seed", line):
+                m = re.search("^Seed\:\s(\d+)\n", line)
+                if m:
+                    seed = m.group(1)
+
             elif re.search("^Reference genomes:", line):
                 in_ref_genomes_list = 1
 
@@ -181,7 +227,6 @@ def read_conf_file():
             elif re.search("^\S+\n$", line) and in_ref_genomes_list and in_processed_genomes_list:
                 m = re.search("^(\S+)\n$", line)
                 genome_name = m.group(1)
-                #print("Processed Genome name: " + genome_name)
                 config.genomes_dict[genome_name]['processed'] = 1
 
     # Verify that all the parameters were written in the file. If not, print error. If yes, save them in the config
@@ -202,6 +247,10 @@ def read_conf_file():
     else:
         error = "The output directory is not written in the config file."
         return error
+
+    if metadata_file != "":
+        config.is_metadata = True
+        config.metadata_file_path = metadata_file
 
     if region_length != "":
         config.region_length = int(region_length)
@@ -226,6 +275,10 @@ def read_conf_file():
     else:
         error = "The minimal identity is not written in the config file."
         return error
+
+    if seed != "":
+        config.is_set_seed = True
+        config.seed_num = int(seed)
 
     # Verify that there is at least one reference genome and that input files exist
     genomes_counter = 0

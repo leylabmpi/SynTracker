@@ -19,6 +19,8 @@ blast_db_file = "GroupsDB"
 blast_db_file_path = ""
 blast_out_dir = "blast_output/"
 blastdbcmd_out_dir = "blastdbcmd_output/"
+is_metadata = False
+metadata_file_path = ""
 
 # Central regions related parameters
 region_length = 1000
@@ -34,7 +36,11 @@ minimal_hits_num = 2
 
 # Job-related parameters
 cpu_num = 8
+
+# R - related parameters
 save_intermediate = False
+is_set_seed = False
+seed_num = 1
 
 # Run related parameters
 running_mode = "new"  # Mode can be 'new' or 'continue'
