@@ -108,7 +108,7 @@ external_func<-function(paths, path_names, metadata, temp_file_folder, core_numb
     saveRDS(narrow, file = paste0(intermediate_file_folder,"narrow.rds"))
   }
   
-  # second part: Process synteny objects
+  # second part: Process synteny objects (multi-core processing)
   dfs<-mcmapply(synteny_scores,narrow, SIMPLIFY = F, mc.preschedule=F,mc.cores=core_number) 
   bad_dfs_elements <- sapply(dfs, inherits, what = "try-error") #identify iterations of synteny scores that failed for some reason. Mostly (although very rare), those are two hits for the same region
   dfs<-dfs[!bad_dfs_elements] # and filter these elements out...

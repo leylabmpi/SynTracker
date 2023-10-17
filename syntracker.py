@@ -169,6 +169,7 @@ def main():
     # Open the config file in append mode
     out_param = open(config.conf_file_path, "a")
 
+    ############################################################################
     # A loop over the ref-genomes that should be processed in the current run
     # (all or part - depending on the running mode)
     for ref_genome in config.run_genomes_list:
@@ -267,6 +268,14 @@ def main():
                 proc.join()
 
             print("All processes in batch number " + str(batch_counter) + " finished successfully")
+
+        # Create a folder for R outputs
+        genome_central_regions_dir = ref_genome_output_dir + config.central_regions_dir
+        try:
+            os.makedirs(genome_central_regions_dir)
+        except OSError:
+            print("\nmkdir " + genome_central_regions_dir + "has failed")
+            exit()
 
         print("BLAST search and blastdbcmd was completed successfully\n")
         out_param.write(ref_genome + "\n")
