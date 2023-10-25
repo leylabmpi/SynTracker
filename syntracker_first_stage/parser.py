@@ -134,12 +134,13 @@ def parse_arguments():
     if args.save_intermediate:
         config.save_intermediate = True
 
-    if args.set_seed is not None and args.set_seed > 0:
-        config.is_set_seed = True
-        config.seed_num = args.set_seed
-    else:
-        error = "Error: if you use the '--set_seed' option, it must be followed by an integer to set the seed with.\n"
-        return error
+    if args.set_seed is not None:
+        if args.set_seed > 0:
+            config.is_set_seed = True
+            config.seed_num = args.set_seed
+        else:
+            error = "Error: if you use the '--set_seed' option, it must be followed by an integer to set the seed with.\n"
+            return error
 
     return error
 

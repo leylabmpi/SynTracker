@@ -8,6 +8,9 @@ conf_file = "config.txt"
 conf_file_path = ""
 central_regions_dir = "central_regions/"
 combined_output_dir = "combined_targets/"
+final_output_dir = "final_output/"
+r_temp_dir = "R_temp/"
+r_intermediate_objects_dir = "R_intermediate_objects/"
 combined_output_path = ""
 combined_renamed_genomes = "combined_renamed_genomes.fasta"
 combined_renamed_genomes_file_path = ""
@@ -21,10 +24,6 @@ blast_out_dir = "blast_output/"
 blastdbcmd_out_dir = "blastdbcmd_output/"
 is_metadata = False
 metadata_file_path = ""
-r_temp_dir = "R_temp/"
-r_temp_path = ""
-final_output_dir = "final_output/"
-final_output_path = ""
 
 # Central regions related parameters
 region_length = 1000
@@ -44,7 +43,7 @@ cpu_num = 8
 # R - related parameters
 save_intermediate = False
 is_set_seed = False
-seed_num = 1
+seed_num = 0
 
 # Run related parameters
 running_mode = "new"  # Mode can be 'new' or 'continue'

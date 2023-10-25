@@ -1,4 +1,5 @@
 import os
+import subprocess
 import multiprocessing
 import shutil
 import re
@@ -269,16 +270,66 @@ def main():
 
             print("All processes in batch number " + str(batch_counter) + " finished successfully")
 
-        # Create a folder for R outputs
-        genome_central_regions_dir = ref_genome_output_dir + config.central_regions_dir
+        ####################################################################################
+        # Step 3: Run synteny calculation using R
+
+        # Create a folder for R final output tables
+        final_output_path = ref_genome_output_dir + config.final_output_dir
         try:
-            os.makedirs(genome_central_regions_dir)
+            os.makedirs(final_output_path)
         except OSError:
-            print("\nmkdir " + genome_central_regions_dir + "has failed")
+            print("\nmkdir " + final_output_path + "has failed")
             exit()
 
-        print("BLAST search and blastdbcmd was completed successfully\n")
+        # Create a folder for R temporary files (will be deleted in the end of the run)
+        r_temp_path = ref_genome_output_dir + config.r_temp_dir
+        try:
+            os.makedirs(r_temp_path)
+        except OSError:
+            print("\nmkdir " + r_temp_path + "has failed")
+            exit()
+
+        # Create a folder for R intermediate objects if the user has asked for it (for debugging purposes)
+        if config.save_intermediate:
+            intermediate_objects_path = ref_genome_output_dir + config.r_intermediate_objects_dir
+            try:
+                os.makedirs(intermediate_objects_path)
+            except OSError:
+                print("\nmkdir " + intermediate_objects_path + "has failed - cannot save R intermediate objects")
+                config.save_intermediate = False
+        else:
+            intermediate_objects_path = ""
+
+        # Run the R script for the synteny analysis of the current reference genome
+        print("\nStarting synteny analysis for genome " + ref_genome + "\n")
+        if intermediate_objects_path == "":
+            intermediate_objects_path = "NA"
+        if config.metadata_file_path == "":
+            metadata_file_path = "NA"
+        else:
+            metadata_file_path = config.metadata_file_path
+
+        command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + config.dictionary_table_path \
+                  + " " + genome_blastdbcmd_out_dir + " " + final_output_path + " " + r_temp_path + " " + " " + \
+                  intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.cpu_num) + " " + \
+                  metadata_file_path
+        print("\n" + command + "\n")
+
+        try:
+            #os.system(command)
+            subprocess.call(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome, config.dictionary_table_path,
+                             genome_blastdbcmd_out_dir, final_output_path, r_temp_path, intermediate_objects_path,
+                             str(config.seed_num), str(config.cpu_num),
+                             metadata_file_path])
+        except Exception as err:
+            print("\nThe following command has failed:")
+            print(command)
+            print(err)
+            exit()
+
+        print("\nThe processing of genome " + ref_genome + "completed successfully\n")
         out_param.write(ref_genome + "\n")
+        config.genomes_dict[ref_genome]['processed'] = 1
 
     out_param.close()
 
