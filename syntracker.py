@@ -112,7 +112,6 @@ def main():
         ##############################################################################
         # Extract the reference genomes from the user-defined directory
         # and save the names and file paths in a dictionary and in the conf file
-        print("\nStarting reference genomes loop...\n")
         out_param.write("\nReference genomes:\n")
         out_param.write("--------------------\n")
 
@@ -270,6 +269,8 @@ def main():
 
             print("All processes in batch number " + str(batch_counter) + " finished successfully")
 
+        print("\BLAST search for all the regions finished successfully\n")
+
         ####################################################################################
         # Step 3: Run synteny calculation using R
 
@@ -313,29 +314,33 @@ def main():
                   + " " + genome_blastdbcmd_out_dir + " " + final_output_path + " " + r_temp_path + " " + " " + \
                   intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.cpu_num) + " " + \
                   metadata_file_path
-        print("\n" + command + "\n")
+        print("\nRunning the following Rscript command:\n" + command + "\n")
 
         try:
-            #os.system(command)
-            subprocess.call(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome, config.dictionary_table_path,
+            subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome, config.dictionary_table_path,
                              genome_blastdbcmd_out_dir, final_output_path, r_temp_path, intermediate_objects_path,
                              str(config.seed_num), str(config.cpu_num),
-                             metadata_file_path])
+                             metadata_file_path], check=True)
+        except subprocess.CalledProcessError as err:
+            print("\nThe following command has failed:")
+            print(command)
+            print(err)
+            exit()
         except Exception as err:
             print("\nThe following command has failed:")
             print(command)
             print(err)
             exit()
 
-        print("\nThe processing of genome " + ref_genome + "completed successfully\n")
+        print("\nThe processing of genome " + ref_genome + " completed successfully\n")
         out_param.write(ref_genome + "\n")
         config.genomes_dict[ref_genome]['processed'] = 1
 
     out_param.close()
 
-    after = time.time()
-    duration = (after - before)
-    print("SynTracker first stage took "+str(duration)+" seconds")
+    #after = time.time()
+    #duration = (after - before)
+    #print("SynTracker first stage took "+str(duration)+" seconds")
 
 
 if __name__ == '__main__':

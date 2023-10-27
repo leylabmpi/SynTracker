@@ -18,17 +18,17 @@ library(DECIPHER)
 
 # output: synteny object
 synteny_analysis<-function(inpath, gene_name, tmp_folder) { 
-  cat("   starting first function - synteny analysis")
+  #cat("   starting first function - synteny analysis")
   fas<-inpath
   seqs <- readDNAStringSet(fas)
-  print(fas)
-  print(gene_name)
+  #print(fas)
+  #print(gene_name)
   db<-paste0(tmp_folder,gene_name)
   flag<-0
   for (i in seq_along(seqs)) {
     if (lengths(seqs[i])>4800) {   #This number controls the minimal length of each sequence to be included in the analysis
-      print(i)
-      print(lengths(seqs[i]))
+      #print(i)
+      #print(lengths(seqs[i]))
       
       # The following line adds sequences to the DECIPHER DB: 
       ###########################
@@ -59,7 +59,7 @@ synteny_analysis<-function(inpath, gene_name, tmp_folder) {
 
 synteny_scores<- function(synteny_object) {
   
-  cat("   starting second function - synteny scores")
+  #cat("   starting second function - synteny scores")
   
   # Define a data frame that will hold all the data: change number of Groups according to number of Fields in metadata (i.e., GroupA, GroupB, etc.): here, for example, we have 4
   per_region_table<-data.frame("sample1" = character(),
@@ -75,8 +75,6 @@ synteny_scores<- function(synteny_object) {
     for (j in 1:(i-1)) {
       sample1<-as.character(str_split(colnames(synteny_object)[j], "_")[[1]][1]) # pay attention to the str_split: could (and should) be changed to suit other naming formats !
       sample2<-as.character(str_split(colnames(synteny_object)[i], "_")[[1]][1]) # pay attention to the str_split: could (and should) be changed to suit other naming formats !
-      #sample1<-paste0(as.character(str_split(colnames(synteny_object)[j], "_")[[1]][1]),".", as.character(str_split(colnames(synteny_object)[j], "_")[[1]][2])) # pay attention to the str_split: could (and should) be changed to suit other naming formats !
-      #sample2<-paste0(as.character(str_split(colnames(synteny_object)[i], "_")[[1]][1]),".",as.character(str_split(colnames(synteny_object)[i], "_")[[1]][2])) # pay attention to the str_split: could (and should) be changed to suit other naming formats !
       length1<-synteny_object[j,j][[1]]
       length2<-synteny_object[i,i][[1]]
       overlap<-sum(synteny_object[j,i][[1]][,4])
@@ -85,12 +83,12 @@ synteny_scores<- function(synteny_object) {
       # these two conditions are meant to catch multiple hits ( >1) for a central region, which are located on the same contig. 
       # When running the pipeline in multicore mode, these results in a try-error and are filtered out later! 
       if (length(length1) > 1 ) { 
-        print(c(j,i))
-        print("length 1 is more than 1")
+        #print(c(j,i))
+        #print("length 1 is more than 1")
       }
       if (length(length2) > 1 ) { 
-        print(c(j,i))
-        print("length 2 is more than 1")
+        #print(c(j,i))
+        #print("length 2 is more than 1")
       }
       
       # calculate the synteny score
@@ -99,7 +97,6 @@ synteny_scores<- function(synteny_object) {
       } else {
         syn_score<-1+log10((overlap/length1)/blocks)
       }
-     # temprow<-data.frame(sample1,sample2,length1,length2,overlap,blocks,GroupA1,GroupA2,GroupB1,GroupB2,GroupC1,GroupC2,GroupD1,GroupD2,is.same.GroupA,is.same.GroupB,is.same.GroupC,is.same.GroupD,syn_score)
        temprow<-data.frame(sample1,sample2,length1,length2,overlap,blocks,syn_score)
       
        per_region_table<-rbind(per_region_table, temprow)
@@ -158,8 +155,7 @@ subsample_regions<-function(big_organized_dfs,subsampling_value) {
 # output: symetric distance matrix
 
 dist_mats<-function(dfss) { #input is a list of tibbles
-  print("runing dist mats !")
-  
+
   dfs<-dfss %>% ungroup() %>% #select relevant columns
     select(sample1,sample2,average_score)  
   dfs<-as.data.frame(dfs) #create a second df, with the same values but the samples are in reverse order (to create a symetric matrix)

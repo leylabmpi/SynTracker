@@ -5,7 +5,7 @@
 # output: modified synteny score tables
 add_metadata<-function(grouped_list,metadata) {
   #metadata<-as.data.frame(metadata)
-  cat("starting metadata function")
+  #cat("\nStarting metadata function")
   #print(colnames(metadata))
   for(i in colnames(metadata)) { 
     print(i)
@@ -22,7 +22,7 @@ add_metadata<-function(grouped_list,metadata) {
       left_join(metadata_reduced, by=c("sample2" = "Sample")) %>% 
       dplyr::rename(!!varname2 := !!i) 
   }
-  cat("ending metadata function")
+  #cat("\nEnding metadata function")
   return(grouped_list)
 }
 

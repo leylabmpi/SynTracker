@@ -11,7 +11,7 @@ source("syntracker_R_scripts/add_metadata_fields.R")
 # Getting the arguments from the python script
 args <- commandArgs(trailingOnly = TRUE)
 genome_name <- args[1]
-old_new_names <- args[2] # Sample names dictionary file
+old_new_names_file <- args[2] # Sample names dictionary file
 blastdbcmd_output_path <- args[3] # The directory in which the fasta sequences (the output of blastdbcmd) are located
 output_folder <- args[4] # The destination folder for the output tables
 tmp_folder <- args[5] # A temporary folder for the db files - should be deleted in the end
@@ -20,24 +20,17 @@ set_seed_arg <- as.integer(args[7]) # an integer to set the seed (if 0 - do not 
 core_number <- as.integer(args[8])
 metadata_file <- args[9] # If not empty - teh path of the metadata file (if empty - there is no metadata)
 
-cat("\ngenome name: ", genome_name, sep = "\n" )
-cat("\nold_new_names name: ", old_new_names, sep = "\n" )
-cat("\nblastdbcmd_output_path name: ", blastdbcmd_output_path, sep = "\n" )
-cat("\noutput_folder name: ", output_folder, sep = "\n" )
-cat("\ntmp_folder name: ", tmp_folder, sep = "\n" )
-cat("\nintermediate_file_folder: ", intermediate_file_folder, sep = "\n" )
-cat("\nset_seed_arg: ", set_seed_arg, sep = "\n" )
-cat("\nNumber of cores: ", core_number, sep = "\n" )
-cat("\nmetadata_file: ", metadata_file, sep = "\n" )
-
 ######################################################################################################
+# Read the sample names dictionary file
+old_new_names <- read.table(file=old_new_names_file, header = T, sep="\t")
+
 # If the user gave a metadata file, read it
 if(metadata_file=='NA') {
-    metadata="NA"
-    cat("\nRunning analysis without Metadata\n")
+    metadata=NA
+    print("Running analysis without Metadata")
 } else {
     metadata<-read.csv(file=metadata_file, sep=";", header = TRUE)
-    cat("\nRunning analysis with Metadata file\n")
+    print("Running analysis with Metadata file")
 }
 
 # List the fasta files from the blastdbcmd output
@@ -47,29 +40,29 @@ for (i in 1:length(filepaths)) {gene_names[i]<-basename(filepaths[i])} # extract
 gene_names<-file_path_sans_ext(gene_names) # remove file extensions
 
 # Run the Decipher synteny analysis (in multi-core)
+print("Running synteny analysis using Decipher...")
 objects<-mcmapply(synteny_analysis, filepaths, gene_names, tmp_folder, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number)
 names(objects)<-gene_names
+print("Decipher analysis finished successfully")
 
 # identify iterations of synteny_anlysis that failed for some reason and filter these elements out...
 bad_objects_elements <- sapply(objects, inherits, what = "try-error")
 objects<-objects[!bad_objects_elements]
 narrow<-Filter(function(x) nrow(x) > 1, objects) #filter elements with comparisons of less than 2 valid seqs, if this happened.
-#print(length(objects))
 rm(objects)
 
 # If the user asked to save intermediate objects - save the narrow ds to the right folder
 if(intermediate_file_folder != 'NA') {
-#if(!is.na(intermediate_file_folder)){
     saveRDS(narrow, file = paste0(intermediate_file_folder, "narrow.rds"))
 }
 
 # second part: Process synteny objects (multi-core processing)
+cat("\nCalculating synteny scores", "", sep = "\n" )
 dfs<-mcmapply(synteny_scores, narrow, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number)
 bad_dfs_elements <- sapply(dfs, inherits, what = "try-error") #identify iterations of synteny scores that failed for some reason. Mostly (although very rare), those are two hits for the same region
 dfs<-dfs[!bad_dfs_elements] # and filter these elements out...
 
 if(intermediate_file_folder != 'NA') {
-#if(!is.na(intermediate_file_folder)){
     saveRDS(dfs, file = paste0(intermediate_file_folder,"dfs.rds"))
 }
 
@@ -80,7 +73,6 @@ big_dfs<-bind_rows(improved_dfs)  # bind to one dataframe
 #####
 # add the original sample names to the table (changed in the second step of "find_overlapping_regions.sh")
 #####
-print("adding new columns now")
 old_new_names_minimal<-old_new_names %>% select(new.sample.name, old.sample.name) %>% distinct(new.sample.name, old.sample.name)
 big_dfs<-left_join(big_dfs, old_new_names_minimal, by=c("sample1"= "new.sample.name")) %>%
 dplyr::rename("temp sample1"="sample1", "sample1" := "old.sample.name" )
@@ -125,24 +117,19 @@ for (i in 1:length(regions_sampled)) {
 }
 
 # give names to the elements in the newly filled list
-for (i in 1:length(grouped_list)) {names(grouped_list)[i]<-paste0(path_names, "_",regions_sampled[i])}
-#print("number of regions found:")
-#print(names(grouped_list))
-#print("length of grouped list:")
-#print(length(grouped_list))
+for (i in 1:length(grouped_list)) {names(grouped_list)[i]<-paste0(genome_name, "_",regions_sampled[i])}
 unlink(tmp_folder, recursive = T)
 
-if (exists("metadata")) {
-    cat("adding metadata fields\n")
+if (!is.na(metadata)){
+    cat("\nAdding metadata fields\n")
     grouped_list<-mapply(add_metadata,grouped_list, MoreArgs = list(metadata), SIMPLIFY = FALSE)
 }
-
-cat("Finished synteny analysis for:", genome_name, sep = "\n" )
 
 mapply(
      write.table,
      x=grouped_list, file=paste(output_folder, names(grouped_list), ".txt", sep=""),
      MoreArgs=list(row.names=FALSE, sep=",")
 )
-return(grouped_list)
+
+cat("\nFinished synteny analysis for:", genome_name, sep = "\n" )
 
