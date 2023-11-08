@@ -15,9 +15,13 @@ def parse_arguments():
     parser.add_argument("-ref", metavar="ref_directory_path",
                         help="Path of the references folder containing the reference genomes", type=str)
     parser.add_argument("-out", metavar="output_directory_path",
-                        help="path of the output directory (optional, by default a folder named "
-                             + str(config.output_dir) + " will be created under the current directory). "
-                             "IMPORTANT: if this directory already exists, it will be written over!!!",
+                        help="The path to the output directory\n. "
+                             "When running in 'new' mode (the default), "
+                             "this argument is optional. By default a folder named \'" + str(config.output_dir) +
+                             "\' will be created under the current directory (if the given path already exists, "
+                             "it will be written over).\n"
+                             "When running in 'continue' mode, it is mandatory to provide the path to the output "
+                             "directory of the run that is requested to be continued.",
                         type=str, default=config.output_dir)
     parser.add_argument("-metadata", metavar="metadata_file",
                         help="Path to a metadata file (optional). The file should be in CSV format and must include "
@@ -50,40 +54,64 @@ def parse_arguments():
     # Parse the given arguments
     args = parser.parse_args()
 
-    # Verify that the user provided a target directory
-    if args.target is not None:
-        input_target_dir = args.target
-
-        # Not absolute path -> turn it into absolute
-        if not os.path.isabs(input_target_dir):
-            config.input_target_dir = os.path.abspath(input_target_dir) + "/"
-        # Absolute path
+    # Set the running mode (new run or continue run)
+    if args.mode is not None:
+        if args.mode == "new" or args.mode == "continue":
+            config.running_mode = args.mode
         else:
-            config.input_target_dir = input_target_dir
-            # Add ending slash
-            if not re.search(r"^(\S+)\/$", input_target_dir):
-                config.input_target_dir += "/"
-    else:
-        error = "Error: you must provide a path to the target folder which contains metagenome assemblies or " \
-                "genomes (using -target)\n"
-        return error
+            error = "-mode ['new' | 'continue'] (Start a new run or continue a previous run that has been stopped).\n"
+            return error
 
-    # Verify that the user provided a reference directory
-    if args.ref is not None:
-        input_ref_dir = args.ref
+    # Verify the mandatory arguments in 'new' mode
+    if config.running_mode == "new":
+        # Verify that the user provided a target directory
+        if args.target is not None:
+            input_target_dir = args.target
 
-        # Not absolute path -> turn it into absolute
-        if not os.path.isabs(input_ref_dir):
-            config.input_ref_dir = os.path.abspath(input_ref_dir) + "/"
-        # Absolute path
+            # Not absolute path -> turn it into absolute
+            if not os.path.isabs(input_target_dir):
+                config.input_target_dir = os.path.abspath(input_target_dir) + "/"
+            # Absolute path
+            else:
+                config.input_target_dir = input_target_dir
+                # Add ending slash
+                if not re.search(r"^(\S+)\/$", input_target_dir):
+                    config.input_target_dir += "/"
         else:
-            config.input_ref_dir = input_ref_dir
-            # Add ending slash
-            if not re.search(r"^(\S+)\/$", input_ref_dir):
-                config.input_ref_dir += "/"
-    else:
-        error = "Error: you must provide a path to the references folder containing the reference genomes(using -ref)\n"
-        return error
+            error = "Error: you must provide a path to the target folder which contains metagenome assemblies or " \
+                    "genomes (using -target)\n"
+            return error
+
+        # Verify that the user provided a reference directory
+        if args.ref is not None:
+            input_ref_dir = args.ref
+
+            # Not absolute path -> turn it into absolute
+            if not os.path.isabs(input_ref_dir):
+                config.input_ref_dir = os.path.abspath(input_ref_dir) + "/"
+            # Absolute path
+            else:
+                config.input_ref_dir = input_ref_dir
+                # Add ending slash
+                if not re.search(r"^(\S+)\/$", input_ref_dir):
+                    config.input_ref_dir += "/"
+        else:
+            error = "Error: you must provide a path to the references folder containing the reference " \
+                    "genomes(using -ref)\n"
+            return error
+
+        # Set the output directory
+        if args.out is not None:
+            config.output_dir = args.out
+
+    # Verify that the user provided the previous output directory
+    elif config.running_mode == "continue":
+        if args.out is not None:
+            config.output_dir = args.out
+        else:
+            error = "Error: in 'continue' mode you must provide a path to the output folder of the run that you " \
+                    "wish to continue.\n"
+            return error
 
     # Set the metadata file (if any)
     if args.metadata is not None:
@@ -99,13 +127,6 @@ def parse_arguments():
             if not re.search(r"^(\S+)\/$", config.metadata_file_path):
                 config.metadata_file_path += "/"
 
-    if args.mode is not None:
-        if args.mode == "new" or args.mode == "continue":
-            config.running_mode = args.mode
-        else:
-            error = "-mode ['new' | 'continue'] (Start a new run or continue a previous run that has been stopped).\n"
-            return error
-
     # Set the cpu number parameter
     if args.cores is not None and args.cores > 0:
         config.cpu_num = args.cores
@@ -115,7 +136,6 @@ def parse_arguments():
     print("\nNumber of computer cores to use: " + str(config.cpu_num))
 
     # Set the global variables according to the user's input
-    config.output_dir = args.out
     config.minimal_identity = args.identity
     config.minimal_coverage = args.coverage
     config.flanking_length = args.length
