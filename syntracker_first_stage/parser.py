@@ -26,9 +26,9 @@ def parse_arguments():
     parser.add_argument("-metadata", metavar="metadata_file",
                         help="Path to a metadata file (optional). The file should be in CSV format and must include "
                              "the sample ID.", type=str)
-    parser.add_argument("-mode", metavar="[new|continue]",
+    parser.add_argument("-mode", metavar="'new'/'continue'",
                         help="The running mode: 'new' or 'continue' (default='new') "
-                             "(Start a new run or continue a previous run that has been stopped).",
+                             "(Start a new run or continue a previous run that has been terminated).",
                         type=str, default=config.running_mode)
     parser.add_argument("-cores", metavar="number_of_cores",
                         help="The number of cores to use for the parallelization of the BLAST-related stages. "
@@ -59,7 +59,7 @@ def parse_arguments():
         if args.mode == "new" or args.mode == "continue":
             config.running_mode = args.mode
         else:
-            error = "-mode ['new' | 'continue'] (Start a new run or continue a previous run that has been stopped).\n"
+            error = "-mode 'new'/'continue' (Start a new run or continue a previous run that has been stopped).\n"
             return error
 
     # Verify the mandatory arguments in 'new' mode
@@ -176,6 +176,7 @@ def read_conf_file():
     minimal_coverage = ""
     minimal_identity = ""
     seed = ""
+    current_genome_name = ""
     error = ""
 
     with open(config.conf_file_path) as read_conf:
@@ -241,14 +242,20 @@ def read_conf_file():
                 config.genomes_dict[genome_name] = dict()
                 config.genomes_dict[genome_name]['input_file'] = genome_file
                 config.genomes_dict[genome_name]['processed'] = 0
+                config.genomes_dict[genome_name]['finished_blast'] = 0
 
             elif re.search("^Processed reference genomes", line):
                 in_processed_genomes_list = 1
 
-            elif re.search("^\S+\n$", line) and in_ref_genomes_list and in_processed_genomes_list:
-                m = re.search("^(\S+)\n$", line)
-                genome_name = m.group(1)
-                config.genomes_dict[genome_name]['processed'] = 1
+            elif re.search("^ref_genome:", line) and in_processed_genomes_list:
+                m = re.search("^ref_genome:\s+(\S+)\n$", line)
+                current_genome_name = m.group(1)
+
+            elif re.search("BLAST finished", line) and in_processed_genomes_list:
+                config.genomes_dict[current_genome_name]['finished_blast'] = 1
+
+            elif re.search("Synteny finished", line) and in_processed_genomes_list:
+                config.genomes_dict[current_genome_name]['processed'] = 1
 
     # Verify that all the parameters were written in the file. If not, print error. If yes, save them in the config
     if ref_dir != "":

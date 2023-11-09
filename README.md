@@ -1,12 +1,13 @@
 
-# SynTracker: a pipeline to track closely related microbial strains using genome synteny
-### SynTracker is a pipeline to determine the biological relatedness of conspecific strains (microbial strains of the same species) using genome synteny.
- 
+# SynTracker: a pipeline for tracking closely related microbial strains using genome synteny
+#### The SynTracker pipeline is designated to determine the biological relatedness of conspecific strains (microbial strains of the same species) using genome synteny. It consists of two main steps:
+#### A. Fragmentation of the reference genomes and execution of BLASTn search against the target genomes/metagenomes.
+#### B. Calculation of average pairwise synteny scores (APSS).  
 
 ## Requirements: 
-Most required packages are contained in the attached conda environment (.yml file).
-Additional requirements:
 NCBI BLAST+
+
+All the other required packages are contained in the attached conda environment (.yml file).
 
 ## Installation:
 ### From source:
@@ -39,56 +40,53 @@ The metadata file should be a tab delimited file. One of the columns should cont
 
 ## Usage: 
 
-The SynTracker pipeline is divided to two main steps:
-a. Fragmentation of the reference genomes and execution of BLASTn search against the target genomes/metagenomes.
-b. Calculation of average pairwise synteny scores (APSS).  
-Each step is executed by a single command. 
-
-### a. First command: 
 ```
-python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] [-out output_directory_path] [-mode [new|continue]]
-                     [-identity blast_identity] [-coverage blast_coverage] [-length flanking_sequences_length] [-cores number_of_cores] 
+python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] [-out output_directory_path]
+                     [-metadata metadata_file] [-mode 'new'/'continue'] [-cores number_of_cores] [--identity blast_identity]
+                     [--coverage blast_coverage] [--length flanking_sequences_length] [--save_intermediate]
+                     [--set_seed integer_for_seed]
 
 
 options:
   -h, --help        show this help message and exit
-  -target target_directory_path
+  -target [target_directory_path]
                     Path of the target directory which contains metagenome assemblies or genomes
-  -ref ref_directory_path
+  -ref [ref_directory_path]
                     Path of the references folder containing the reference genomes
-  -out output_directory_path
-                    path of the output directory (optional, by default a folder named Syntracker_output/ will be created under the current
-                    directory). IMPORTANT: if this directory already exists, it will be written over!!!
-  -mode [new|continue]  
-                    The running mode: 'new' or 'continue' (default='new') (Start a new run or continue a previous run that has been stopped).
-  -identity blast_identity
-                    Minimal blast identity (optional, default=97)
-  -coverage blast_coverage
-                    Minimal blast coverage (optional, default=70)
-  -length flanking_sequences_length
-                    The length of the flanking sequences (from both sides of the BLAST hit). (Optional, default=2000)
-  -cores number_of_cores
+  -out [output_directory_path]
+                    The path to the output directory . When running in 'new' mode (the default), this argument is optional. By
+                    default a folder named 'Syntracker_output/' will be created under the current directory (if the given path
+                    already exists, it will be written over). When running in 'continue' mode, it is mandatory to provide the
+                    path to the output directory of the run that is requested to be continued.
+  -metadata [metadata_file]
+                    Path to a metadata file (optional). The file should be in CSV format and must include the sample ID.
+  -mode ['new'/'continue']  
+                    The running mode: 'new' or 'continue' (default='new') (Start a new run or continue a previous run that has been terminated).
+  -cores [number_of_cores]
                     The number of cores to use for the parallelization of the BLAST-related stages. (Optional, default is the number of computer
                     available cores).
+  --identity [blast_identity]
+                    Minimal blast identity (optional, default=97)
+  --coverage [blast_coverage]
+                    Minimal blast coverage (optional, default=70)
+  --length [flanking_sequences_length]
+                    The length of the flanking sequences (from both sides of the BLAST hit). (Optional, default=2000)
+  --save_intermediate   
+                    Saves R intermediate data structures for debugging purposes (by default, they are not saved).
+  --set_seed [integer_for_seed]
+                    An integer number to set the seed for subsampling of n regions per pairwise (when the same seed is set, the
+                    subsampling is reproducable). This is an optional argument, by default no seed is used.  
 ```
 
-**Example using the provided input data:**
-`python syntracker.py -target Sample_input/Target_genomes -ref Sample_input/Reference_genomes/ -out first_step_output/`
+### Usage examples using the provided sample data:
 
-### b.	Second command:
-**From the folder in which the SynTracker scripts are located, execute:**
+**A new run:**
 ```
-Rscript SynTracker.R  [input directory] [output directory] [number of cores] [save RDS] [set.seed] [metadata file]
-```
+python syntracker.py -target Sample_input/Target_genomes/ -ref Sample_input/Reference_genomes/ -out SynTracker_output/
 ```
 
-input directory: The path of the output directory specified in step a. 
-output directory: The path of the final output directory.
-number of cores : 
-save RDS: should RDS image of be saved for the run (yes/no : "--intermediate"/"--no_indermediate"). If not provided the script fails
-set.seed : should the subsampling of n regions per pairwise be random or not ("--use.setseed", "--setseed.off").  If not provided the script fails. #IMPORTANT! This flag temporarily does not ifluence the run!
-metadata : metadata file, should include the sample ID, and any other relevant fields. Optional.  
+**Continue a previous run that has been terminated:**
 ```
-**Example using the provided input data:**
+python syntracker.py -out SynTracker_output/ -mode continue
+```
 
-`Rscript SynTracker.R first_step_output/ final_syntracker_output/ 8 --no_indermediate --use.setseed`

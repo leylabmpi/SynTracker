@@ -113,7 +113,7 @@ def main():
         # Extract the reference genomes from the user-defined directory
         # and save the names and file paths in a dictionary and in the conf file
         out_param.write("\nReference genomes:\n")
-        out_param.write("--------------------\n")
+        out_param.write("--------------------\n\n")
 
         for ref_genome_file in os.listdir(config.input_ref_dir):
             if re.search(r"^\.", ref_genome_file):
@@ -126,20 +126,22 @@ def main():
             config.genomes_dict[ref_genome] = dict()
             config.genomes_dict[ref_genome]['input_file'] = ref_genome_file_path
             config.genomes_dict[ref_genome]['processed'] = 0
+            config.genomes_dict[ref_genome]['finished_blast'] = 0
             # Write the entries to the config file
             out_param.write(ref_genome + "\t" + ref_genome_file_path + "\n")
 
             # Add the genome name to the list of genomes that should be processed in the current run
             config.run_genomes_list.append(ref_genome)
 
-            out_param.write("\nProcessed reference genomes (BLAST + blastdbcmd):\n\n")
+        out_param.write("\nProcessed reference genomes:\n")
+        out_param.write("------------------------------\n\n")
 
         out_param.close()
 
     #######################################################################################################
     # The current run continues a previous run that was stopped -> read the parameters from the conf file
     else:
-        print("\nContinuing a previous SynTracker run\n")
+        print("\nContinue a previous SynTracker run\n")
 
         # Read the parameters and genome list from the conf file
         error = parser.read_conf_file()
@@ -158,124 +160,143 @@ def main():
         config.blast_db_file_path = config.blast_db_path + config.blast_db_file
 
         # Add the genomes that were not processed to the list of genomes that should be processed in the current run
+        counter = 0
         for genome in config.genomes_dict:
             if config.genomes_dict[genome]['processed'] == 0:
                 config.run_genomes_list.append(genome)
                 print("Found reference genome that has not been processed yet: " + genome)
+                counter += 1
+
+        # Found no genome to process (=all were already processed)
+        if counter == 0:
+            print("All reference genomes have already been processed!")
+            exit(0)
 
     #######################################################################################################################
     # From now on: the same operations for both a new run and a continuing run
 
-    # Open the config file in append mode
-    out_param = open(config.conf_file_path, "a")
-
-    ############################################################################
     # A loop over the ref-genomes that should be processed in the current run
     # (all or part - depending on the running mode)
     for ref_genome in config.run_genomes_list:
 
-        print("\nProcessing reference genome " + ref_genome)
-
-        # Create a directory for the reference genome under the main output dir
+        # Set the directory for the reference genome under the main output dir
         ref_genome_output_dir = config.main_output_path + ref_genome + "/"
 
-        # If the genome dir already exists - delete its content
-        if os.path.exists(ref_genome_output_dir):
-            print("\nDirectory " + ref_genome_output_dir + " already exists - deleting its content")
-            shutil.rmtree(ref_genome_output_dir)
-        # Create a new ref genome dir
-        else:
+        # Set the blastdbcmd output folder (for the hits sequences includeing the flanking regions)
+        genome_blastdbcmd_out_dir = ref_genome_output_dir + config.blastdbcmd_out_dir
+
+        # Run the directory creation and the BLAST parts only if it is a new run
+        # or the BLAST part hasn't finished in a previous run (in case of 'continue' mode)
+        if config.running_mode == "new" or config.genomes_dict[ref_genome]['finished_blast'] == 0:
+
+            print("\nProcessing reference genome " + ref_genome)
+            out_param = open(config.conf_file_path, "a")
+            out_param.write("ref_genome: " + ref_genome + "\n")
+            out_param.close()
+
+            # If the genome dir already exists - delete it and its content
+            if os.path.exists(ref_genome_output_dir):
+                print("\nDirectory " + ref_genome_output_dir + " already exists - deleting its content")
+                shutil.rmtree(ref_genome_output_dir)
+            # Create a new ref genome dir
             try:
                 os.makedirs(ref_genome_output_dir)
             except OSError:
                 print("\nmkdir " + ref_genome_output_dir + "has failed")
                 exit()
 
-        #####################################
-        # step 1: find the "central_regions"
+            #####################################
+            # step 1: find the "central_regions"
 
-        # Create a folder for the central regions
-        genome_central_regions_dir = ref_genome_output_dir + config.central_regions_dir
-        try:
-            os.makedirs(genome_central_regions_dir)
-        except OSError:
-            print("\nmkdir " + genome_central_regions_dir + "has failed")
-            exit()
+            # Create a folder for the central regions
+            genome_central_regions_dir = ref_genome_output_dir + config.central_regions_dir
+            try:
+                os.makedirs(genome_central_regions_dir)
+            except OSError:
+                print("\nmkdir " + genome_central_regions_dir + "has failed")
+                exit()
 
-        cr.find_central_regions(ref_genome, genome_central_regions_dir)
-        print("\nFound central regions. They are located in: " + genome_central_regions_dir)
+            cr.find_central_regions(ref_genome, genome_central_regions_dir)
+            print("\nFound central regions. They are located in: " + genome_central_regions_dir)
 
-        ###########################################
-        # Step 2: run blast per central region and extract the flanking sequences for each hit
-        print("\nRunning BLAST search for each region of the central regions...")
+            ###########################################
+            # Step 2: run blast per central region and extract the flanking sequences for each hit
+            print("\nRunning BLAST search for each region of the central regions...")
 
-        # Create a main blast output folder
-        genome_blast_out_dir = ref_genome_output_dir + config.blast_out_dir
-        try:
-            os.makedirs(genome_blast_out_dir)
-        except OSError:
-            print("\nmkdir " + genome_blast_out_dir + "has failed")
-            exit()
+            # Create a main blast output folder
+            genome_blast_out_dir = ref_genome_output_dir + config.blast_out_dir
+            try:
+                os.makedirs(genome_blast_out_dir)
+            except OSError:
+                print("\nmkdir " + genome_blast_out_dir + "has failed")
+                exit()
 
-        # Create a blastdbcmd output folder (for the hits sequences includeing the flanking regions)
-        genome_blastdbcmd_out_dir = ref_genome_output_dir + config.blastdbcmd_out_dir
-        try:
-            os.makedirs(genome_blastdbcmd_out_dir)
-        except OSError:
-            print("\nmkdir " + genome_blastdbcmd_out_dir + "has failed")
-            exit()
+            # Create a blastdbcmd output folder (for the hits sequences includeing the flanking regions)
+            try:
+                os.makedirs(genome_blastdbcmd_out_dir)
+            except OSError:
+                print("\nmkdir " + genome_blastdbcmd_out_dir + "has failed")
+                exit()
 
-        # Create a list of the central regions files for the current ref-genome
-        region_files_list = []
-        for region_file in os.listdir(genome_central_regions_dir):
-            if re.search(r"^.+\.fasta", region_file):  # List only fasta files
-                region_files_list.append(region_file)
+            # Create a list of the central regions files for the current ref-genome
+            region_files_list = []
+            for region_file in os.listdir(genome_central_regions_dir):
+                if re.search(r"^.+\.fasta", region_file):  # List only fasta files
+                    region_files_list.append(region_file)
 
-        # A loop over batches of processes in the size of the available number of threads
-        batch_counter = 0
-        for batch_index in range(0, len(region_files_list), config.cpu_num):
+            # A loop over batches of processes in the size of the available number of threads
+            batch_counter = 0
+            for batch_index in range(0, len(region_files_list), config.cpu_num):
 
-            batch_processes = []
-            batch_counter += 1
+                batch_processes = []
+                batch_counter += 1
 
-            # A loop over the regions of a certain threads batch
-            for region_index in range(batch_index, batch_index+config.cpu_num):
+                # A loop over the regions of a certain threads batch
+                for region_index in range(batch_index, batch_index+config.cpu_num):
 
-                if region_index < len(region_files_list):
+                    if region_index < len(region_files_list):
 
-                    region_file = region_files_list[region_index]
-                    region_name = os.path.splitext(region_file)[0]
-                    full_path_region_file = genome_central_regions_dir + region_file
-                    blast_region_outfile = genome_blast_out_dir + region_name + ".tab"
-                    blastdbcmd_region_outfile = genome_blastdbcmd_out_dir + region_name + ".fasta"
+                        region_file = region_files_list[region_index]
+                        region_name = os.path.splitext(region_file)[0]
+                        full_path_region_file = genome_central_regions_dir + region_file
+                        blast_region_outfile = genome_blast_out_dir + region_name + ".tab"
+                        blastdbcmd_region_outfile = genome_blastdbcmd_out_dir + region_name + ".fasta"
 
-                    #print("Processing region " + region_name)
+                        process = multiprocessing.Process(target=blast.blast_per_region_process,
+                                                          args=(full_path_region_file, blast_region_outfile,
+                                                                blastdbcmd_region_outfile, config.blast_db_file_path,
+                                                                config.flanking_length, config.minimal_flanking_length,
+                                                                config.minimal_identity, config.minimal_coverage,
+                                                                config.blast_num_threads))
+                        # Start the process
+                        process.start()
 
-                    process = multiprocessing.Process(target=blast.blast_per_region_process,
-                                                      args=(full_path_region_file, blast_region_outfile,
-                                                            blastdbcmd_region_outfile, config.blast_db_file_path,
-                                                            config.flanking_length, config.minimal_flanking_length,
-                                                            config.minimal_identity, config.minimal_coverage,
-                                                            config.blast_num_threads))
-                    # Start the process
-                    process.start()
+                        # Add the process to the list for later control
+                        batch_processes.append(process)
 
-                    # Add the process to the list for later control
-                    batch_processes.append(process)
+                # wait until all the processes in the batch are finished
+                for proc in batch_processes:
+                    proc.join()
 
-            # wait until all the processes in the batch are finished
-            for proc in batch_processes:
-                proc.join()
+                print("All processes in batch number " + str(batch_counter) + " finished successfully")
 
-            print("All processes in batch number " + str(batch_counter) + " finished successfully")
-
-        print("\BLAST search for all the regions finished successfully\n")
+            print("\BLAST search for all the regions finished successfully\n")
+            config.genomes_dict[ref_genome]['finished_blast'] = 1
+            out_param = open(config.conf_file_path, "a")
+            out_param.write("- BLAST finished\n")
+            out_param.close()
 
         ####################################################################################
         # Step 3: Run synteny calculation using R
 
         # Create a folder for R final output tables
         final_output_path = ref_genome_output_dir + config.final_output_dir
+
+        # If the R final output dir already exists - delete it and its content
+        if os.path.exists(final_output_path):
+            print("\nDirectory " + final_output_path + " already exists - deleting its content")
+            shutil.rmtree(final_output_path)
+        # Create a new R final output dir
         try:
             os.makedirs(final_output_path)
         except OSError:
@@ -284,6 +305,12 @@ def main():
 
         # Create a folder for R temporary files (will be deleted in the end of the run)
         r_temp_path = ref_genome_output_dir + config.r_temp_dir
+
+        # If the R temporary files dir already exists - delete it and its content
+        if os.path.exists(r_temp_path):
+            print("\nDirectory " + r_temp_path + " already exists - deleting its content")
+            shutil.rmtree(r_temp_path)
+        # Create a new R temporary files dir
         try:
             os.makedirs(r_temp_path)
         except OSError:
@@ -293,6 +320,12 @@ def main():
         # Create a folder for R intermediate objects if the user has asked for it (for debugging purposes)
         if config.save_intermediate:
             intermediate_objects_path = ref_genome_output_dir + config.r_intermediate_objects_dir
+
+            # If the R intermediate objects dir already exists - delete it and its content
+            if os.path.exists(intermediate_objects_path):
+                print("\nDirectory " + intermediate_objects_path + " already exists - deleting its content")
+                shutil.rmtree(intermediate_objects_path)
+            # Create a new R intermediate objects dir
             try:
                 os.makedirs(intermediate_objects_path)
             except OSError:
@@ -333,14 +366,10 @@ def main():
             exit()
 
         print("\nThe processing of genome " + ref_genome + " completed successfully\n")
-        out_param.write(ref_genome + "\n")
+        out_param = open(config.conf_file_path, "a")
+        out_param.write("- Synteny finished\n\n")
+        out_param.close()
         config.genomes_dict[ref_genome]['processed'] = 1
-
-    out_param.close()
-
-    #after = time.time()
-    #duration = (after - before)
-    #print("SynTracker first stage took "+str(duration)+" seconds")
 
 
 if __name__ == '__main__':
