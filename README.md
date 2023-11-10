@@ -74,8 +74,8 @@ options:
   --save_intermediate   
                     Saves R intermediate data structures for debugging purposes (by default, they are not saved).
   --set_seed [integer_for_seed]
-                    An integer number to set the seed for subsampling of n regions per pairwise (when the same seed is set, the
-                    subsampling is reproducable). This is an optional argument, by default no seed is used.  
+                    An integer number to set the seed for subsampling of n regions per pairwise (by default, the seed is 1).
+  --no_seed         Set no seed for the subsampling of n regions per pairwise (by default, seed=1 is set).
 ```
 
 ### Usage examples using the provided sample data:

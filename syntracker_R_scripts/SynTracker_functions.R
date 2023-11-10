@@ -129,8 +129,12 @@ add_names<-function(dfs, names) {
 # 2. subsampling_value = how many regions/pairwise to sample. 
 
 # output: dataframe with APSS values (col name is "average_score"), based on "subsampling_value" regions per pair. Pairs with <"subsampling_value" regions are filtererd out. 
-subsample_regions<-function(big_organized_dfs,subsampling_value) {
-  set.seed(1) # user should decide whether set.seed should be commented or not: depends if you want to get repreducible subsampling or different in any run 
+subsample_regions<-function(big_organized_dfs, subsampling_value, set_seed_arg) {
+  if(set_seed_arg != 0) {
+    set.seed(set_seed_arg)
+    cat("Using set.seed for reproducable subsampling. Seed: ", set_seed_arg, sep = " " )
+    cat("\n\n")
+  }
   newdf<-big_organized_dfs %>% 
     # pay attention to the grouping variable below - should match the groups specified in the "synteny_score" function
     group_by(sample1, sample2) %>% 

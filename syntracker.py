@@ -72,6 +72,8 @@ def main():
             out_param.write("\nSave intermediate: " + str(config.save_intermediate) + "\n")
         if config.is_set_seed:
             out_param.write("Seed: " + str(config.seed_num) + "\n")
+        else:
+            out_param.write("No seed\n")
 
         ################################################################
         # Take care of the naming issues of the target genomes:
@@ -351,9 +353,9 @@ def main():
 
         try:
             subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome, config.dictionary_table_path,
-                             genome_blastdbcmd_out_dir, final_output_path, r_temp_path, intermediate_objects_path,
-                             str(config.seed_num), str(config.cpu_num),
-                             metadata_file_path], check=True)
+                            genome_blastdbcmd_out_dir, final_output_path, r_temp_path, intermediate_objects_path,
+                            str(config.seed_num), str(config.cpu_num),
+                            metadata_file_path], check=True)
         except subprocess.CalledProcessError as err:
             print("\nThe following command has failed:")
             print(command)

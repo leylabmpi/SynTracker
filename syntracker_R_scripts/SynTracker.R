@@ -16,7 +16,7 @@ blastdbcmd_output_path <- args[3] # The directory in which the fasta sequences (
 output_folder <- args[4] # The destination folder for the output tables
 tmp_folder <- args[5] # A temporary folder for the db files - should be deleted in the end
 intermediate_file_folder <- args[6] # If not empty - the folder for saving R intermediate objects (if empty - do not save them)
-set_seed_arg <- as.integer(args[7]) # an integer to set the seed (if 0 - do not use seed) -> Currently not active - fix it!!!
+set_seed_arg <- as.integer(args[7]) # an integer to set the seed (if 0 - do not use seed)
 core_number <- as.integer(args[8])
 metadata_file <- args[9] # If not empty - teh path of the metadata file (if empty - there is no metadata)
 
@@ -112,7 +112,7 @@ regions_sampled<-c(20,30,40,60,80,100,200)
 #run the subsampling function for values below the maximal nuber of regions/pair:
 for (i in 1:length(regions_sampled)) {
     ifelse(biggest_group >= regions_sampled[i],
-           grouped_list[i]<-mapply(subsample_regions, list(big_organized_dfs), regions_sampled[i], SIMPLIFY = F), #add the set.seed argument to the function
+           grouped_list[i]<-mapply(subsample_regions, list(big_organized_dfs), regions_sampled[i], set_seed_arg, SIMPLIFY = F),
            next)
 }
 

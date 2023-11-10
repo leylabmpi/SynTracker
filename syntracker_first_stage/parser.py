@@ -48,8 +48,10 @@ def parse_arguments():
                         action='store_true', default=False)
     parser.add_argument("--set_seed", metavar="integer_for_seed",
                         help="An integer number to set the seed for subsampling of n regions per pairwise "
-                             "(when the same seed is set, the subsampling is reproducable). "
-                             "This is an optional argument, by default no seed is used.", type=int)
+                             "(by default, the seed is 1).", type=int)
+    parser.add_argument("--no_seed", help="Set no seed for the subsampling of n regions per pairwise "
+                                          "(by default, seed=1 is set).",
+                        action='store_true', default=False)
 
     # Parse the given arguments
     args = parser.parse_args()
@@ -154,12 +156,16 @@ def parse_arguments():
     if args.save_intermediate:
         config.save_intermediate = True
 
-    if args.set_seed is not None:
+    if args.no_seed:
+        config.is_set_seed = False
+        config.seed_num = 0
+
+    elif args.set_seed is not None:
         if args.set_seed > 0:
-            config.is_set_seed = True
             config.seed_num = args.set_seed
         else:
-            error = "Error: if you use the '--set_seed' option, it must be followed by an integer to set the seed with.\n"
+            error = "Error: if you use the '--set_seed' option, it must be followed by an integer to set the seed " \
+                    "with.\n"
             return error
 
     return error
@@ -230,7 +236,11 @@ def read_conf_file():
             elif re.search("^Seed", line):
                 m = re.search("^Seed\:\s(\d+)\n", line)
                 if m:
+                    config.is_set_seed = True
                     seed = m.group(1)
+
+            elif re.search("^No seed", line):
+                config.is_set_seed = False
 
             elif re.search("^Reference genomes:", line):
                 in_ref_genomes_list = 1
@@ -304,8 +314,7 @@ def read_conf_file():
         error = "The minimal identity is not written in the config file."
         return error
 
-    if seed != "":
-        config.is_set_seed = True
+    if config.is_set_seed:
         config.seed_num = int(seed)
 
     # Verify that there is at least one reference genome and that input files exist
