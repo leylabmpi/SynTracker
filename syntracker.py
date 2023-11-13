@@ -25,15 +25,15 @@ def main():
         print(error)
         exit()
 
-    # Add a slash to the output dir name
-    if not re.search("^(\S+)\/$", config.output_dir):
-        config.output_dir += "/"
-
-    # Set the absolute path of the main output dir
-    if os.path.isabs(config.output_dir):
-        config.main_output_path = config.output_dir
+    # Set the absolute path of the main output directory
+    if not os.path.isabs(config.output_dir):
+        config.main_output_path = os.path.abspath(config.output_dir) + "/"
+    # The user gave an absolute path
     else:
-        config.main_output_path = config.working_dir + "/" + config.output_dir
+        config.main_output_path = config.output_dir
+        # Add ending slash
+        if not re.search(r"^(\S+)\/$", config.main_output_path):
+            config.main_output_path += "/"
 
     # Set the full path of the running params file
     config.conf_file_path = config.main_output_path + config.conf_file
@@ -52,7 +52,7 @@ def main():
         try:
             os.makedirs(config.main_output_path)
         except OSError:
-            print("\nmkdir " + config.main_output_path + "has failed")
+            print("\nmkdir " + config.main_output_path + " has failed")
             exit()
 
         # Create the running parameters file
@@ -282,7 +282,7 @@ def main():
 
                 print("All processes in batch number " + str(batch_counter) + " finished successfully")
 
-            print("\BLAST search for all the regions finished successfully\n")
+            print("\nBLAST search for all the regions finished successfully\n")
             config.genomes_dict[ref_genome]['finished_blast'] = 1
             out_param = open(config.conf_file_path, "a")
             out_param.write("- BLAST finished\n")

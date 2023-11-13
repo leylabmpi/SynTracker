@@ -191,42 +191,42 @@ def read_conf_file():
         in_processed_genomes_list = 0
         for line in read_conf:
             if re.search("^Reference genomes directory:", line):
-                m = re.search("^Reference.+\:\s(\S+)\n", line)
+                m = re.search("^Reference.+:\s(\S+)\n", line)
                 if m:
                     ref_dir = m.group(1)
 
             elif re.search("^Target", line):
-                m = re.search("^Target.+\:\s(\S+)\n", line)
+                m = re.search("^Target.+:\s(\S+)\n", line)
                 if m:
                     target_dir = m.group(1)
 
             elif re.search("^Output", line):
-                m = re.search("^Output.+\:\s(\S+)\n", line)
+                m = re.search("^Output.+:\s(\S+)\n", line)
                 if m:
                     output_dir = m.group(1)
 
             elif re.search("^Metadata", line):
-                m = re.search("^Metadata.+\:\s(\S+)\n", line)
+                m = re.search("^Metadata.+:\s(\S+)\n", line)
                 if m:
                     metadata_file = m.group(1)
 
             elif re.search("^Region", line):
-                m = re.search("^Region.+\:\s(\d+)\n", line)
+                m = re.search("^Region.+:\s(\d+)\n", line)
                 if m:
                     region_length = m.group(1)
 
             elif re.search("^Flanking", line):
-                m = re.search("^Flanking.+\:\s(\d+)\n", line)
+                m = re.search("^Flanking.+:\s(\d+)\n", line)
                 if m:
                     flanking_length = m.group(1)
 
             elif re.search("^Minimal coverage", line):
-                m = re.search("^Minimal coverage\:\s(\d+)\n", line)
+                m = re.search("^Minimal coverage:\s(\d+)\n", line)
                 if m:
                     minimal_coverage = m.group(1)
 
             elif re.search("^Minimal identity", line):
-                m = re.search("^Minimal identity\:\s(\d+)\n", line)
+                m = re.search("^Minimal identity:\s(\d+)\n", line)
                 if m:
                     minimal_identity = m.group(1)
 
@@ -234,7 +234,7 @@ def read_conf_file():
                 config.save_intermediate = True
 
             elif re.search("^Seed", line):
-                m = re.search("^Seed\:\s(\d+)\n", line)
+                m = re.search("^Seed:\s(\d+)\n", line)
                 if m:
                     config.is_set_seed = True
                     seed = m.group(1)
