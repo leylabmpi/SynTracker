@@ -21,8 +21,6 @@ core_number <- as.integer(args[8])
 metadata_file <- args[9] # If not empty - teh path of the metadata file (if empty - there is no metadata)
 
 ######################################################################################################
-# Read the sample names dictionary file
-old_new_names <- read.table(file=old_new_names_file, header = T, sep="\t")
 
 # If the user gave a metadata file, read it
 if(metadata_file=='NA') {
@@ -70,14 +68,14 @@ if(intermediate_file_folder != 'NA') {
 improved_dfs<-map2(dfs, names(dfs), add_names)
 big_dfs<-bind_rows(improved_dfs)  # bind to one dataframe
 
-#####
-# add the original sample names to the table (changed in the second step of "find_overlapping_regions.sh")
-#####
-old_new_names_minimal<-old_new_names %>% select(new.sample.name, old.sample.name) %>% distinct(new.sample.name, old.sample.name)
+###################################
+# Read the sample names dictionary file and add the original sample names to the table
+old_new_names_minimal <- read.table(file=old_new_names_file, header = T, sep="\t")
+#old_new_names_minimal<-old_new_names %>% select(new.sample.name, old.sample.name) %>% distinct(new.sample.name, old.sample.name)
 big_dfs<-left_join(big_dfs, old_new_names_minimal, by=c("sample1"= "new.sample.name")) %>%
 dplyr::rename("temp sample1"="sample1", "sample1" := "old.sample.name" )
 big_dfs<-left_join(big_dfs, old_new_names_minimal, by=c("sample2"= "new.sample.name")) %>%
-dplyr::rename("temp sampl2"="sample2", "sample2" := "old.sample.name" )
+dplyr::rename("temp sample2"="sample2", "sample2" := "old.sample.name" )
 
 # change order of sample1 and sample2, according to some rules, so that the order will be uniform throughout the table
 # i.e. sampleX-sampleY will always be like that and not sampleY-sampleX ==> if the order is not uniform it will be treated as two different comparisons

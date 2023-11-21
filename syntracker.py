@@ -12,7 +12,6 @@ import syntracker_first_stage.blast as blast
 
 
 def main():
-    before = time.time()
 
     # Get the working directory
     config.working_dir = os.getcwd()
@@ -91,7 +90,8 @@ def main():
             print("\nmkdir " + config.combined_output_path + "has failed")
             exit()
         config.combined_renamed_genomes_file_path = config.combined_output_path + config.combined_renamed_genomes
-        config.dictionary_table_path = config.combined_output_path + config.dictionary_table
+        config.dictionary_table_full_path = config.combined_output_path + config.dictionary_table_full
+        config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
 
         tr.create_unique_names()
 
@@ -157,7 +157,8 @@ def main():
         # Assign all the global paths
         config.combined_output_path = config.main_output_path + config.combined_output_dir
         config.combined_renamed_genomes_file_path = config.combined_output_path + config.combined_renamed_genomes
-        config.dictionary_table_path = config.combined_output_path + config.dictionary_table
+        config.dictionary_table_full_path = config.combined_output_path + config.dictionary_table_full
+        config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
         config.blast_db_path = config.main_output_path + config.blast_db_dir
         config.blast_db_file_path = config.blast_db_path + config.blast_db_file
 
@@ -180,6 +181,8 @@ def main():
     # A loop over the ref-genomes that should be processed in the current run
     # (all or part - depending on the running mode)
     for ref_genome in config.run_genomes_list:
+
+        before = time.time()
 
         # Set the directory for the reference genome under the main output dir
         ref_genome_output_dir = config.main_output_path + ref_genome + "/"
@@ -288,8 +291,13 @@ def main():
             out_param.write("- BLAST finished\n")
             out_param.close()
 
+            after = time.time()
+            duration = after - before
+            print("\nThe BLAST stage took " + str(duration) + " seconds.\n")
+
         ####################################################################################
         # Step 3: Run synteny calculation using R
+        before = time.time()
 
         # Create a folder for R final output tables
         final_output_path = ref_genome_output_dir + config.final_output_dir
@@ -345,14 +353,15 @@ def main():
         else:
             metadata_file_path = config.metadata_file_path
 
-        command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + config.dictionary_table_path \
-                  + " " + genome_blastdbcmd_out_dir + " " + final_output_path + " " + r_temp_path + " " + " " + \
-                  intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.cpu_num) + " " + \
-                  metadata_file_path
+        command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + \
+                  config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + final_output_path + \
+                  " " + r_temp_path + " " + " " + intermediate_objects_path + " " + str(config.seed_num) + " " + \
+                  str(config.cpu_num) + " " + metadata_file_path
         print("\nRunning the following Rscript command:\n" + command + "\n")
 
         try:
-            subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome, config.dictionary_table_path,
+            subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome,
+                            config.sample_dictionary_table_path,
                             genome_blastdbcmd_out_dir, final_output_path, r_temp_path, intermediate_objects_path,
                             str(config.seed_num), str(config.cpu_num),
                             metadata_file_path], check=True)
@@ -366,6 +375,10 @@ def main():
             print(command)
             print(err)
             exit()
+
+        after = time.time()
+        duration = after - before
+        print("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
 
         print("\nThe processing of genome " + ref_genome + " completed successfully\n")
         out_param = open(config.conf_file_path, "a")

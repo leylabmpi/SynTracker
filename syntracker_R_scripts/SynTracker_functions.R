@@ -1,11 +1,5 @@
 #requirements
 library(DECIPHER)
-#library(stringr)
-
-#library(tidyverse)
-#library(phangorn)
-#library(ggtree)
-#library(parallel)
 
 ############
 # fucntions
@@ -27,8 +21,6 @@ synteny_analysis<-function(inpath, gene_name, tmp_folder) {
   flag<-0
   for (i in seq_along(seqs)) {
     if (lengths(seqs[i])>4800) {   #This number controls the minimal length of each sequence to be included in the analysis
-      #print(i)
-      #print(lengths(seqs[i]))
       
       # The following line adds sequences to the DECIPHER DB: 
       ###########################
@@ -79,17 +71,6 @@ synteny_scores<- function(synteny_object) {
       length2<-synteny_object[i,i][[1]]
       overlap<-sum(synteny_object[j,i][[1]][,4])
       blocks<-nrow(synteny_object[i,j][[1]])
-
-      # these two conditions are meant to catch multiple hits ( >1) for a central region, which are located on the same contig. 
-      # When running the pipeline in multicore mode, these results in a try-error and are filtered out later! 
-      if (length(length1) > 1 ) { 
-        #print(c(j,i))
-        #print("length 1 is more than 1")
-      }
-      if (length(length2) > 1 ) { 
-        #print(c(j,i))
-        #print("length 2 is more than 1")
-      }
       
       # calculate the synteny score
       if (length1>length2) {
