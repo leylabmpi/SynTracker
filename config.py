@@ -51,6 +51,9 @@ save_intermediate = False
 is_set_seed = True
 seed_num = 1
 subsampling_lengths = [20, 30, 40, 60, 80, 100, 200]
+subsampled_regions_file_names = []
+for i in range(len(subsampling_lengths)):
+    subsampled_regions_file_names.append("average_synteny_scores_" + str(subsampling_lengths[i]) + "_regions.txt")
 
 # Run related parameters
 running_mode = "new"  # Mode can be 'new' or 'continue'

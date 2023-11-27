@@ -89,6 +89,13 @@ def main():
         out_summary.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"Region\",\"Length1\",\"Length2\",\"Overlap\",\"Blocks\",\"Synteny_score\"\n")
         out_summary.close()
 
+        # Prepare R subsampled-regions output files for all the genomes together
+        for file_name in config.subsampled_regions_file_names:
+            file_path = config.summary_output_path + file_name
+            out_subsampled = open(file_path, "w")
+            out_subsampled.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"Average_score\",\"Compared_regions\"\n")
+            out_subsampled.close()
+
         ################################################################
         # Take care of the naming issues of the target genomes:
         # a. change sample names (i.e., assemblies/genomes) to Sample.xxx
