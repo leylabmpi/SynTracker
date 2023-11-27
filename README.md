@@ -24,15 +24,20 @@ Activate the newly created environment:
 
 ## Input:
 SynTracker requires  three types of data as input:  
-#### a.	Reference genome: 
-Reference genomes could be provided complete or as a collection of contigs. If using a number of contigs belonging to the same reference genome, all sequences should be placed in a single .fasta file. 
+#### a.	Reference genomes: 
+Reference genomes can be provided complete or as a collection of contigs. If using a number of contigs belonging to the same reference genome, all sequences should be placed in a single .fasta file. 
+
 If using more than one reference genome (i.e., analyzing more than one species per run) all reference genome files should be located in the same directory.  
-**The directory `Sample_input/Reference_genomes/` contains an example reference genome.**
+
+The directory `Sample_input/Reference_genomes/` contains an example reference genome.
 #### b.	Metagenomic assemblies/genomes: 
-These data are the metagenomic assemblies (or assembled genomes, if those are studied) that would be compared.
-These data should be organized in per-sample assembly files - i.e., all the contigs assembled from sample X would be kept in a single file. If genomes are to be compared, each genome will be stored in a single fasta file. 
+These are the metagenomic assemblies (or assembled genomes, if those are studied) that would be compared.
+These data should be organized in per-sample assembly files - i.e., all the contigs assembled from sample X would be kept in a single file. 
+
+If genomes are to be compared, each genome will be stored in a single fasta file. 
 All files should be stored in the same directory (refered below as the "target directory"). 
-**The directory `Sample_input/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.**
+
+The directory `Sample_input/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.
    
 #### c.	Metadata file (optional): 
 The metadata file contains information regarding the genomes/assemblies to be compared. 
@@ -89,4 +94,8 @@ python syntracker.py -target Sample_input/Target_genomes/ -ref Sample_input/Refe
 ```
 python syntracker.py -out SynTracker_output/ -mode continue
 ```
+
+## Output:
+The output and intermediate files of a SynTracker run are organized by the given reference genomes.
+Under the main output directory (provided by the user) there is a directory for each reference genome.
 

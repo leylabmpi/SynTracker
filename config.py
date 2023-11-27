@@ -8,6 +8,10 @@ conf_file = "config.txt"
 conf_file_path = ""
 central_regions_dir = "central_regions/"
 combined_output_dir = "combined_targets/"
+summary_output_dir = "summary_output/"
+summary_output_path = ""
+output_summary_file = "synteny_scores_summary.tab"
+output_summary_file_path = ""
 final_output_dir = "final_output/"
 r_temp_dir = "R_temp/"
 r_intermediate_objects_dir = "R_intermediate_objects/"
@@ -46,6 +50,7 @@ cpu_num = 8
 save_intermediate = False
 is_set_seed = True
 seed_num = 1
+subsampling_lengths = [20, 30, 40, 60, 80, 100, 200]
 
 # Run related parameters
 running_mode = "new"  # Mode can be 'new' or 'continue'

@@ -74,6 +74,21 @@ def main():
         else:
             out_param.write("No seed\n")
 
+        ############################################
+        # Create a directory for the summary output (all genomes together)
+        config.summary_output_path = config.main_output_path + config.summary_output_dir
+        try:
+            os.makedirs(config.summary_output_path)
+        except OSError:
+            print("\nmkdir " + config.summary_output_path + " has failed")
+            exit()
+
+        # Prepare R main summary output file
+        config.output_summary_file_path = config.summary_output_path + config.output_summary_file
+        out_summary = open(config.output_summary_file_path, "w")
+        out_summary.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"Region\",\"Length1\",\"Length2\",\"Overlap\",\"Blocks\",\"Synteny_score\"\n")
+        out_summary.close()
+
         ################################################################
         # Take care of the naming issues of the target genomes:
         # a. change sample names (i.e., assemblies/genomes) to Sample.xxx
@@ -355,15 +370,15 @@ def main():
 
         command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + \
                   config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + final_output_path + \
-                  " " + r_temp_path + " " + " " + intermediate_objects_path + " " + str(config.seed_num) + " " + \
-                  str(config.cpu_num) + " " + metadata_file_path
+                  " " + config.summary_output_path + " " + r_temp_path + " " + " " + intermediate_objects_path + " " + \
+                  str(config.seed_num) + " " + str(config.cpu_num) + " " + metadata_file_path
         print("\nRunning the following Rscript command:\n" + command + "\n")
 
         try:
             subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome,
                             config.sample_dictionary_table_path,
-                            genome_blastdbcmd_out_dir, final_output_path, r_temp_path, intermediate_objects_path,
-                            str(config.seed_num), str(config.cpu_num),
+                            genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path, r_temp_path,
+                            intermediate_objects_path, str(config.seed_num), str(config.cpu_num),
                             metadata_file_path], check=True)
         except subprocess.CalledProcessError as err:
             print("\nThe following command has failed:")
