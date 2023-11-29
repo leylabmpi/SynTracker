@@ -96,6 +96,7 @@ python syntracker.py -out SynTracker_output/ -mode continue
 ```
 
 ## Output:
+SynTracker outputs two types of tables, both include pairwise specific information.
 The output and intermediate files of a SynTracker run are organized by the given reference genomes.
 Under the main output directory (provided by the user) there is a directory for each reference genome.
 

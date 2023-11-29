@@ -125,39 +125,5 @@ for (i in 1:length(regions_sampled)) {
 
 unlink(tmp_folder, recursive = T)
 
-###################################
-#run the subsampling function for values below the maximal nuber of regions/pair:
-#for (i in 1:length(regions_sampled)) {
-#    ifelse(biggest_group >= regions_sampled[i],
-#           grouped_list[i]<-mapply(subsample_regions, list(big_organized_dfs), regions_sampled[i], set_seed_arg, SIMPLIFY = F),
-#           next)
-#}
-
-# give names to the elements in the newly filled list
-#for (i in 1:length(grouped_list)) {names(grouped_list)[i]<-paste0(genome_name, "_",regions_sampled[i])}
-#unlink(tmp_folder, recursive = T)
-
-#if (!is.na(metadata)){
-#    cat("\nAdding metadata fields\n")
-#    grouped_list<-mapply(add_metadata, grouped_list, MoreArgs = list(metadata), SIMPLIFY = FALSE)
-#}
-
-# Write the per-genome subsampling files
-#mapply(
-#     write.table,
-#     x=grouped_list, file=paste(output_folder, names(grouped_list), ".txt", sep=""),
-#     MoreArgs=list(row.names=FALSE, sep=",")
-#)
-
-# give new names without the genome names to the summary files of all the genomes together
-#for (i in 1:length(grouped_list)) {names(grouped_list)[i]<-paste0("average_synteny_scores_",regions_sampled[i])}
-
-# Write the subsampling files with all the genomes together
-#mapply(
-#     write.table,
-#     x=grouped_list, file=paste(output_summary_folder, names(grouped_list), "_regions.txt", sep=""),
-#     MoreArgs=list(sep=",", row.names=FALSE, col.names=FALSE, append=TRUE)
-#)
-
 cat("\nFinished synteny analysis for:", genome_name, sep = "\n" )
 

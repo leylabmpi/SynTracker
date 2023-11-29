@@ -151,6 +151,7 @@ def main():
             config.genomes_dict[ref_genome]['input_file'] = ref_genome_file_path
             config.genomes_dict[ref_genome]['processed'] = 0
             config.genomes_dict[ref_genome]['finished_blast'] = 0
+            config.genomes_dict[ref_genome]['finished_R'] = 0
             # Write the entries to the config file
             out_param.write(ref_genome + "\t" + ref_genome_file_path + "\n")
 
@@ -183,6 +184,7 @@ def main():
         config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
         config.blast_db_path = config.main_output_path + config.blast_db_dir
         config.blast_db_file_path = config.blast_db_path + config.blast_db_file
+        config.summary_output_path = config.main_output_path + config.summary_output_dir
 
         # Add the genomes that were not processed to the list of genomes that should be processed in the current run
         counter = 0
@@ -317,95 +319,130 @@ def main():
             duration = after - before
             print("\nThe BLAST stage took " + str(duration) + " seconds.\n")
 
+        # In 'continue' mode, where only the BLAST stage of the current ref-genome was finished successfully
+        else:
+            # Set the names of the folders that should hold the R per-genome output and intermediate files
+            final_output_path = ref_genome_output_dir + config.final_output_dir
+            r_temp_path = ref_genome_output_dir + config.r_temp_dir
+
+            # It can happen that the R process continue running successfully until the end, but detached from
+            # the parent python process, so it doesn't know that the R has finished (and wrote the results to the outfiles).
+            # If this is the case - there is no need to run the synteny scores calculation again for the current ref-genome.
+
+            # If the synteny calculation was finished successfully, the final_output directory with all the per-genome
+            # output files should exist and the R_temp folder should have been removed.
+            if os.path.exists(final_output_path) is True and os.path.exists(r_temp_path) is False:
+
+                # Check the number of existing per-genome final output files
+                outfiles_num = len(os.listdir(final_output_path))
+
+                # According to the number of output files - R has finished successfully
+                if outfiles_num == len(config.subsampling_lengths) + 1:
+                    print("\nFound synteny calculation output files- no need to run this stage again")
+                    config.genomes_dict[ref_genome]['finished_R'] = 1
+                else:
+                    print("\nNumber of output files doesn't match the expected - run the synteny calculation again")
+                    config.genomes_dict[ref_genome]['finished_R'] = 0
+
+            # Probably R hasn't finished successfully -> run it again
+            else:
+                print("\nFound no output files of the synteny calculation - run it again")
+                config.genomes_dict[ref_genome]['finished_R'] = 0
+
         ####################################################################################
         # Step 3: Run synteny calculation using R
-        before = time.time()
+        if config.genomes_dict[ref_genome]['finished_R'] == 0:
 
-        # Create a folder for R final output tables
-        final_output_path = ref_genome_output_dir + config.final_output_dir
+            before = time.time()
 
-        # If the R final output dir already exists - delete it and its content
-        if os.path.exists(final_output_path):
-            print("\nDirectory " + final_output_path + " already exists - deleting its content")
-            shutil.rmtree(final_output_path)
-        # Create a new R final output dir
-        try:
-            os.makedirs(final_output_path)
-        except OSError:
-            print("\nmkdir " + final_output_path + "has failed")
-            exit()
+            # Create a folder for R final output tables
+            final_output_path = ref_genome_output_dir + config.final_output_dir
 
-        # Create a folder for R temporary files (will be deleted in the end of the run)
-        r_temp_path = ref_genome_output_dir + config.r_temp_dir
-
-        # If the R temporary files dir already exists - delete it and its content
-        if os.path.exists(r_temp_path):
-            print("\nDirectory " + r_temp_path + " already exists - deleting its content")
-            shutil.rmtree(r_temp_path)
-        # Create a new R temporary files dir
-        try:
-            os.makedirs(r_temp_path)
-        except OSError:
-            print("\nmkdir " + r_temp_path + "has failed")
-            exit()
-
-        # Create a folder for R intermediate objects if the user has asked for it (for debugging purposes)
-        if config.save_intermediate:
-            intermediate_objects_path = ref_genome_output_dir + config.r_intermediate_objects_dir
-
-            # If the R intermediate objects dir already exists - delete it and its content
-            if os.path.exists(intermediate_objects_path):
-                print("\nDirectory " + intermediate_objects_path + " already exists - deleting its content")
-                shutil.rmtree(intermediate_objects_path)
-            # Create a new R intermediate objects dir
+            # If the R final output dir already exists - delete it and its content
+            if os.path.exists(final_output_path):
+                print("\nDirectory " + final_output_path + " already exists - deleting its content")
+                shutil.rmtree(final_output_path)
+            # Create a new R final output dir
             try:
-                os.makedirs(intermediate_objects_path)
+                os.makedirs(final_output_path)
             except OSError:
-                print("\nmkdir " + intermediate_objects_path + "has failed - cannot save R intermediate objects")
-                config.save_intermediate = False
-        else:
-            intermediate_objects_path = ""
+                print("\nmkdir " + final_output_path + "has failed")
+                exit()
 
-        # Run the R script for the synteny analysis of the current reference genome
-        print("\nStarting synteny analysis for genome " + ref_genome + "\n")
-        if intermediate_objects_path == "":
-            intermediate_objects_path = "NA"
-        if config.metadata_file_path == "":
-            metadata_file_path = "NA"
-        else:
-            metadata_file_path = config.metadata_file_path
+            # Create a folder for R temporary files (will be deleted in the end of the run)
+            r_temp_path = ref_genome_output_dir + config.r_temp_dir
 
-        command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + \
-                  config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + final_output_path + \
-                  " " + config.summary_output_path + " " + r_temp_path + " " + " " + intermediate_objects_path + " " + \
-                  str(config.seed_num) + " " + str(config.cpu_num) + " " + metadata_file_path
-        print("\nRunning the following Rscript command:\n" + command + "\n")
+            # If the R temporary files dir already exists - delete it and its content
+            if os.path.exists(r_temp_path):
+                print("\nDirectory " + r_temp_path + " already exists - deleting its content")
+                shutil.rmtree(r_temp_path)
+            # Create a new R temporary files dir
+            try:
+                os.makedirs(r_temp_path)
+            except OSError:
+                print("\nmkdir " + r_temp_path + "has failed")
+                exit()
 
-        try:
-            subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome,
-                            config.sample_dictionary_table_path,
-                            genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path, r_temp_path,
-                            intermediate_objects_path, str(config.seed_num), str(config.cpu_num),
-                            metadata_file_path], check=True)
-        except subprocess.CalledProcessError as err:
-            print("\nThe following command has failed:")
-            print(command)
-            print(err)
-            exit()
-        except Exception as err:
-            print("\nThe following command has failed:")
-            print(command)
-            print(err)
-            exit()
+            # Create a folder for R intermediate objects if the user has asked for it (for debugging purposes)
+            if config.save_intermediate:
+                intermediate_objects_path = ref_genome_output_dir + config.r_intermediate_objects_dir
 
-        after = time.time()
-        duration = after - before
-        print("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
+                # If the R intermediate objects dir already exists - delete it and its content
+                if os.path.exists(intermediate_objects_path):
+                    print("\nDirectory " + intermediate_objects_path + " already exists - deleting its content")
+                    shutil.rmtree(intermediate_objects_path)
+                # Create a new R intermediate objects dir
+                try:
+                    os.makedirs(intermediate_objects_path)
+                except OSError:
+                    print("\nmkdir " + intermediate_objects_path + "has failed - cannot save R intermediate objects")
+                    config.save_intermediate = False
+            else:
+                intermediate_objects_path = ""
 
+            # Run the R script for the synteny analysis of the current reference genome
+            print("\nStarting synteny analysis for genome " + ref_genome + "\n")
+            if intermediate_objects_path == "":
+                intermediate_objects_path = "NA"
+            if config.metadata_file_path == "":
+                metadata_file_path = "NA"
+            else:
+                metadata_file_path = config.metadata_file_path
+
+            command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + \
+                        config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + \
+                        final_output_path + " " + config.summary_output_path + " " + r_temp_path + " " + " " + \
+                        intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.cpu_num) + " " + \
+                        metadata_file_path
+            print("\nRunning the following Rscript command:\n" + command + "\n")
+
+            try:
+                subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome,
+                                config.sample_dictionary_table_path,
+                                genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path,
+                                r_temp_path, intermediate_objects_path, str(config.seed_num), str(config.cpu_num),
+                                metadata_file_path], check=True)
+            except subprocess.CalledProcessError as err:
+                print("\nThe following command has failed:")
+                print(command)
+                print(err)
+                exit()
+            except Exception as err:
+                print("\nThe following command has failed:")
+                print(command)
+                print(err)
+                exit()
+
+            after = time.time()
+            duration = after - before
+            print("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
+
+        # Mark this ref-genome as finished and write in the config.txt file that the synteny stage was finished
         print("\nThe processing of genome " + ref_genome + " completed successfully\n")
         out_param = open(config.conf_file_path, "a")
         out_param.write("- Synteny finished\n\n")
         out_param.close()
+        config.genomes_dict[ref_genome]['finished_R'] = 1
         config.genomes_dict[ref_genome]['processed'] = 1
 
 

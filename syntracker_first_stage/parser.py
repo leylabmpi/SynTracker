@@ -253,6 +253,7 @@ def read_conf_file():
                 config.genomes_dict[genome_name]['input_file'] = genome_file
                 config.genomes_dict[genome_name]['processed'] = 0
                 config.genomes_dict[genome_name]['finished_blast'] = 0
+                config.genomes_dict[genome_name]['finished_R'] = 0
 
             elif re.search("^Processed reference genomes", line):
                 in_processed_genomes_list = 1
@@ -265,6 +266,7 @@ def read_conf_file():
                 config.genomes_dict[current_genome_name]['finished_blast'] = 1
 
             elif re.search("Synteny finished", line) and in_processed_genomes_list:
+                config.genomes_dict[genome_name]['finished_R'] = 1
                 config.genomes_dict[current_genome_name]['processed'] = 1
 
     # Verify that all the parameters were written in the file. If not, print error. If yes, save them in the config
