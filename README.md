@@ -4,13 +4,14 @@
 #### A. Fragmentation of the reference genomes and execution of BLASTn search against the target genomes/metagenomes.
 #### B. Calculation of average pairwise synteny scores (APSS).  
 
-## Requirements: 
+## Installation
+
+### Requirements: 
 NCBI BLAST+
 
 All the other required packages are contained in the attached conda environment (.yml file).
 
-## Installation:
-### From source:
+### Installing from source:
 Download SynTrakcer latest release from: https://github.com/leylabmpi/SynTracker/releases.
 
 Extract the tar.gz file into the desired working-directory.
@@ -22,7 +23,7 @@ Activate the newly created environment:
       `conda activate SynTracker_1_2_0`
 
 
-## Input:
+## Input
 SynTracker requires  three types of data as input:  
 #### a.	Reference genomes: 
 Reference genomes can be provided complete or as a collection of contigs. If using a number of contigs belonging to the same reference genome, all sequences should be placed in a single .fasta file. 
@@ -43,7 +44,7 @@ The directory `Sample_input/Target_genomes/` contains a collection of target gen
 The metadata file contains information regarding the genomes/assemblies to be compared. 
 The metadata file should be a tab delimited file. One of the columns should contain the sample ID, which is identical to the naming of the fasta files in the "target folder".
 
-## Usage: 
+## Usage
 
 ```
 python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] [-out output_directory_path]
@@ -83,7 +84,7 @@ options:
   --no_seed         Set no seed for the subsampling of n regions per pairwise (by default, seed=1 is set).
 ```
 
-### Usage examples using the provided sample data:
+### Usage examples using the provided sample data
 
 **A new run:**
 ```
@@ -95,8 +96,26 @@ python syntracker.py -target Sample_input/Target_genomes/ -ref Sample_input/Refe
 python syntracker.py -out SynTracker_output/ -mode continue
 ```
 
-## Output:
-SynTracker outputs two types of tables, both include pairwise specific information.
-The output and intermediate files of a SynTracker run are organized by the given reference genomes.
-Under the main output directory (provided by the user) there is a directory for each reference genome.
+## Output
+
+#### Output per genome:
+For each given reference genome, SynTracker outputs two types of tables, both include pairwise specific information.
+All the output files for a certain reference genome are located under the directory `[genome_name]/final_output/`.
+
+The table `[genome name]_synteny_scores_per_region.tab` contains the raw results obtained by the comparison of each two homologous genomic 
+regions in each two metagenomes in which they were detected (or genomes, if those are being compared).
+
+The second type of output tables, `[genome name]_avg_synteny_scores_[subsampling length].txt`, gives the APSS 
+(Average Pairwise Synteny Score) that was calculated by subsampling N regions per pair of samples
+from the overall regions that appear in the raw table (detailed above). 
+By default, N equals to 20, 30, 40, 60, 80, 100, 200 regions per pair of samples.
+
+#### Summary output (all genomes together):
+Syntracker also creates the same output tables mentioned above for all the references genomes together. 
+These summary output files are located under the directory `summary_output/`.
+
+The raw (pairwise synteny scores per-region) table is called `synteny_scores_per_region.tab`. 
+
+The tables containing the APSS in different subsampling lengths are called `avg_synteny_scores_[subsampling length].txt`.
+
 

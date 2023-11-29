@@ -89,14 +89,14 @@ sample2=ifelse(replaced == "yes", temp, as.character(sample2)))  #sample2 will h
 
 # Create a big summary table containing all the comparisons and write it to a file under the main output folder
 big_organized_dfs_final<-big_organized_dfs %>% select(sample1, sample2, position_counter, length1, length2, overlap, blocks, syn_score) %>% arrange(sample1,sample2, as.numeric(position_counter)) %>% rename(region=position_counter)
-genome_big_table_path<-paste0(output_folder, genome_name , "_summary.tab")
+genome_big_table_path<-paste0(output_folder, genome_name , "_synteny_scores_per_region.tab")
 write.table(big_organized_dfs_final, file=genome_big_table_path, sep=",", row.names = FALSE)
 
 # Add a column for the ref genome in the final table
 summary_organized_dfs<-big_organized_dfs_final %>% mutate(ref_genome=genome_name, .before = sample1)
 
 # Append the per-genome big table to the main table, that contains all the ref-genomes together
-summary_table_path<-paste0(output_summary_folder, "synteny_scores_summary.tab")
+summary_table_path<-paste0(output_summary_folder, "synteny_scores_per_region.tab")
 write.table(summary_organized_dfs, file=summary_table_path, sep=",", row.names = FALSE, col.names=FALSE, append=TRUE)
 
 ##################
@@ -116,9 +116,9 @@ regions_sampled<-c(20,30,40,60,80,100,200)
 for (i in 1:length(regions_sampled)) {
     if(biggest_group >= regions_sampled[i]){
         grouped_df<-as.data.frame(mapply(subsample_regions, list(big_organized_dfs), regions_sampled[i], 1, SIMPLIFY = F))
-        write.table(grouped_df, file=paste(output_folder, genome_name, "_", regions_sampled[i], ".txt", sep=""), row.names=FALSE, sep=",")
+        write.table(grouped_df, file=paste(output_folder, genome_name, "_avg_synteny_scores_", regions_sampled[i], ".txt", sep=""), row.names=FALSE, sep=",")
         grouped_df_with_genome<-grouped_df %>% mutate(ref_genome=genome_name, .before = sample1)
-        write.table(grouped_df_with_genome, file=paste(output_summary_folder, "average_synteny_scores_", regions_sampled[i], "_regions.txt", sep=""),
+        write.table(grouped_df_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_", regions_sampled[i], ".txt", sep=""),
         row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
     }
 }
