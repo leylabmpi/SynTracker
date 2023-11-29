@@ -24,7 +24,7 @@ Activate the newly created environment:
 
 
 ## Input
-SynTracker requires  three types of data as input:  
+SynTracker requires three types of data as input (the first two types are mandatory):  
 #### a.	Reference genomes: 
 Reference genomes can be provided complete or as a collection of contigs. If using a number of contigs belonging to the same reference genome, all sequences should be placed in a single .fasta file. 
 
