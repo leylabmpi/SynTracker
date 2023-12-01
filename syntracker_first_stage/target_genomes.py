@@ -3,15 +3,11 @@ This script takes the target genomes/assemblies, assigns new generic names to th
 and to the contigs (replaces the original fasta header with contig.xxx).
 
 This is done to avoid:
-	a. Naming issues, mostly when special characters are included in the file name/fasta headers.
-	b. Too long fasta headers, which results in abortion of the blast search  
+a. Naming issues, mostly when special characters are included in the file name/fasta headers.
+b. Too long fasta headers, which results in abortion of the blast search
 
 All the input target genomes/assemblies are written to one combined file. 
 A second file holds a table with old and new Sample names, old and new contig names.
-
-* user should provide the path to the folder with the target genomes
-* user should provide the paths of the output and table files
-* execution: python old_to_new_names.py (target_genomes_folder) (output_file) (table_file)
 """
 
 import re
