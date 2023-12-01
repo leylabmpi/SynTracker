@@ -112,10 +112,10 @@ from the overall regions that appear in the raw table (detailed above).
 By default, N equals to 20, 30, 40, 60, 80, 100, 200 regions per pair of samples.
 
 #### Summary output (all genomes together):
-Syntracker also creates the same output tables mentioned above for all the references genomes together. 
+Syntracker also creates the same output tables mentioned above for all the references genomes combined together. 
 These summary output files are located under the directory `summary_output/`.
 
-The raw (pairwise synteny scores per-region) table is called `synteny_scores_per_region.tab`. 
+The raw (per-region synteny scores) table is called `synteny_scores_per_region.tab`. 
 
 The tables containing the APSS in different subsampling lengths are called `avg_synteny_scores_[subsampling length].txt`.
 
