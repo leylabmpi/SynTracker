@@ -51,8 +51,23 @@ SynTracker has two modes of execution:
 1. 'New' mode: a new run. In this case the user must provide the path to the reference genomes and to the target genomes. 
 All the other parameters are optional (including the output directory, which is created by default under 
 the working directory with the name 'Syntracker_output'). 
-2. 'Continue' mode: continue a previous run that has been terminated for some reason and was not finished, without starting everything allover again. 
+2. 'Continue' mode: continue a previous run that has been terminated for some reason without having to start the process from the beginning. 
 In this case, the user must provide only the path to the output folder of the run that he wish to continue. 
+
+### Usage examples using the provided sample data
+(With the minimal required mandatory input parameters)
+
+**A new run:**
+```
+python syntracker.py -target Sample_input/Target_genomes/ -ref Sample_input/Reference_genomes/ -out SynTracker_output/
+```
+
+**Continue a previous run that has been terminated:**
+```
+python syntracker.py -out SynTracker_output/ -mode continue
+```
+
+### A description of all SynTracker's possible command line arguments:
 
 ```
 python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] [-out output_directory_path]
@@ -90,18 +105,6 @@ options:
   --set_seed [integer_for_seed]
                     An integer number to set the seed for subsampling of n regions per pairwise (by default, the seed is 1).
   --no_seed         Set no seed for the subsampling of n regions per pairwise (by default, seed=1 is set).
-```
-
-### Usage examples using the provided sample data
-
-**A new run (with the minimal required mandatory input parameters):**
-```
-python syntracker.py -target Sample_input/Target_genomes/ -ref Sample_input/Reference_genomes/ -out SynTracker_output/
-```
-
-**Continue a previous run that has been terminated:**
-```
-python syntracker.py -out SynTracker_output/ -mode continue
 ```
 
 ## Output
