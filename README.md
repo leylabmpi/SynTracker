@@ -47,6 +47,13 @@ The metadata file should be a tab delimited file. One of the columns should cont
 
 ## Usage
 
+SynTracker has two modes of execution: 
+1. 'New' mode: a new run. In this case the user must provide the path to the reference genomes and to the target genomes. 
+All the other parameters are optional (including the output directory, which is created by default under 
+the working directory with the name 'Syntracker_output'). 
+2. 'Continue' mode: continue a previous run that has been terminated for some reason and was not finished, without starting everything allover again. 
+In this case, the user must provide only the path to the output folder of the run that he wish to continue. 
+
 ```
 python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] [-out output_directory_path]
                      [-metadata metadata_file] [-mode 'new'/'continue'] [-cores number_of_cores] [--identity blast_identity]
@@ -87,7 +94,7 @@ options:
 
 ### Usage examples using the provided sample data
 
-**A new run:**
+**A new run (with the minimal required mandatory input parameters):**
 ```
 python syntracker.py -target Sample_input/Target_genomes/ -ref Sample_input/Reference_genomes/ -out SynTracker_output/
 ```
