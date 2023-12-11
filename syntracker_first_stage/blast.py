@@ -64,11 +64,11 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
 
                 # If the flanking-start is a negative value
                 if flank_start <= 0:
-                    # If the upstream length is at least 1800, take this sequence
+                    # If the upstream length meets the minimal flanking length, take this sequence
                     # and change the start position to 1
                     if abs(flank_start) <= flanking_length - minimal_flanking_length:
                         flank_start = 1
-                    # The overall upstream length is shorter than 1800 -> ignore the sequence
+                    # The overall upstream length is shorter than the minimal flanking length -> ignore the sequence
                     else:
                         continue
 

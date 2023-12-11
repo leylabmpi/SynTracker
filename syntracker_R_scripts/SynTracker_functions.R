@@ -20,8 +20,6 @@ synteny_analysis<-function(inpath, gene_name, tmp_folder) {
   db<-paste0(tmp_folder,gene_name)
   flag<-0
   for (i in seq_along(seqs)) {
-    if (lengths(seqs[i])>4800) {   #This number controls the minimal length of each sequence to be included in the analysis
-      
       # The following line adds sequences to the DECIPHER DB: 
       ###########################
       #   IMPORTANT:
@@ -30,7 +28,6 @@ synteny_analysis<-function(inpath, gene_name, tmp_folder) {
       Seqs2DB(seqs[i], "XStringSet", db, str_split(names(seqs[i]), "_")[[1]][1]) 
       ###########################      
       flag<-flag+1
-    }
   }
   
   if (flag>1) { # only run DECIPHER analysis if we have more than 1 sequence matching this specific region. 

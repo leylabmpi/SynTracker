@@ -34,7 +34,7 @@ metadata_file_path = ""
 # Central regions related parameters
 region_length = 1000
 flanking_length = 2000
-minimal_flanking_length = 1800
+minimal_flanking_length = flanking_length - 100
 jump_length = region_length + flanking_length * 2
 
 # BLAST related parameters
@@ -53,7 +53,7 @@ seed_num = 1
 subsampling_lengths = [20, 30, 40, 60, 80, 100, 200]
 subsampled_regions_file_names = []
 for i in range(len(subsampling_lengths)):
-    subsampled_regions_file_names.append("average_synteny_scores_" + str(subsampling_lengths[i]) + "_regions.txt")
+    subsampled_regions_file_names.append("avg_synteny_scores_" + str(subsampling_lengths[i]) + ".txt")
 
 # Run related parameters
 running_mode = "new"  # Mode can be 'new' or 'continue'

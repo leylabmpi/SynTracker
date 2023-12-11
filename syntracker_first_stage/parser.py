@@ -141,6 +141,7 @@ def parse_arguments():
     config.minimal_identity = args.identity
     config.minimal_coverage = args.coverage
     config.flanking_length = args.length
+    config.minimal_flanking_length = config.flanking_length - 100
     config.jump_length = config.region_length + config.flanking_length * 2
 
     # Verify that identity is an integer between 0-100
@@ -300,6 +301,8 @@ def read_conf_file():
 
     if flanking_length != "":
         config.flanking_length = int(flanking_length)
+        config.minimal_flanking_length = config.flanking_length - 100
+        config.jump_length = config.region_length + config.flanking_length * 2
     else:
         error = "The flanking length is not written in the config file."
         return error
