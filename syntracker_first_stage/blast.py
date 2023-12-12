@@ -2,6 +2,7 @@ from Bio.Blast.Applications import NcbimakeblastdbCommandline
 from Bio.Blast.Applications import NcbiblastnCommandline
 import os
 import csv
+import re
 import config
 
 
@@ -35,16 +36,10 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
     # Count the number of hits in the blast output file
     file = open(blast_region_outfile)
     hits_num = len(file.readlines())  # Count the number of lines (=num of hits) in the output file
-
-    # If the blast output file has less than 2 hits - delete it
-    if hits_num < 2:
-        try:
-            os.remove(blast_region_outfile)
-        except OSError:
-            print("\nRemoving " + blast_region_outfile + "has failed")
+    hits_by_sample_dict = dict()  # a dict to hold the sample names that have already been found among the blast hits
 
     # At least two hits -> read the file
-    else:
+    if hits_num >= 2:
         with open(blast_region_outfile) as file:
             reader = csv.reader(file, delimiter='\t')
             for row in reader:
@@ -52,6 +47,37 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
                 start = row[1]
                 end = row[2]
                 strand = row[3]
+
+                m = re.search("^(Sample\.\d+)_contig", sample_name)
+                if m:
+                    sample_name_only = m.group(1)
+
+                # If the current sample is already found in the samples dictionary ->
+                # there is more than one hit per sample -> ignore this sample
+                if sample_name_only in hits_by_sample_dict:
+                    hits_by_sample_dict[sample_name_only]["valid"] = False
+
+                # This is the first hit of this sample
+                else:
+                    hits_by_sample_dict[sample_name_only] = dict()
+                    hits_by_sample_dict[sample_name_only]["valid"] = True
+                    hits_by_sample_dict[sample_name_only]["sample_name"] = sample_name
+                    hits_by_sample_dict[sample_name_only]["start"] = start
+                    hits_by_sample_dict[sample_name_only]["end"] = end
+                    hits_by_sample_dict[sample_name_only]["strand"] = strand
+
+        valid_samples = 0
+        for sample in hits_by_sample_dict:
+            if hits_by_sample_dict[sample]["valid"]:
+                valid_samples += 1
+
+        # Continue to run blastdbcmd only if this region has at least two valid samples (with no more than one hit)
+        if valid_samples >= 2:
+            for sample in hits_by_sample_dict:
+                sample_name = hits_by_sample_dict[sample]["sample_name"]
+                start = hits_by_sample_dict[sample]["start"]
+                end = hits_by_sample_dict[sample]["end"]
+                strand = hits_by_sample_dict[sample]["strand"]
 
                 # Plus strand
                 if strand == "plus":
@@ -75,6 +101,10 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
                 # Run blastdbcmd to get the hit including flanking sequences from the database
                 run_blastdbcmd(sample_name, str(flank_start), str(flank_end), strand,
                                      blastdbcmd_region_outfile, blast_db_file_path)
+
+        else:
+            print("\nBLAST output file " + blast_region_outfile + " contains less than two valid samples - "
+                                                                "ignoring it...\n")
 
 
 def run_blastn(query_file, outfile, blast_db_file_path, minimal_identity, minimal_coverage, num_threads):
