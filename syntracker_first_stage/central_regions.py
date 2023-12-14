@@ -39,5 +39,5 @@ def find_central_regions(genome_name, central_regions_dir):
             outgene_file.write(contig_seqs[contig][pos:pos + config.region_length])
             outgene_file.write("\n")
             outgene_file.close()
-            pos += config.jump_length
+            pos += config.full_length
 

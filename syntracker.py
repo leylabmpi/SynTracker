@@ -59,12 +59,11 @@ def main():
         out_param.write("Running Parameters:\n")
         out_param.write("--------------------\n")
         out_param.write("\nReference genomes directory: " + config.input_ref_dir + "\n")
-        out_param.write("Target genomes directory: " + config.input_target_dir + "\n")
-        out_param.write("Output directory: " + config.main_output_path + "\n")
+        out_param.write("\nTarget genomes directory: " + config.input_target_dir + "\n")
+        out_param.write("\nOutput directory: " + config.main_output_path + "\n")
         if config.is_metadata:
-            out_param.write("Metadata file path: " + config.metadata_file_path + "\n")
-        out_param.write("\nRegion length: " + str(config.region_length) + "\n")
-        out_param.write("Flanking regions length: " + str(config.flanking_length) + "\n")
+            out_param.write("\nMetadata file path: " + config.metadata_file_path + "\n")
+        out_param.write("\nFull regions length: " + str(config.full_length) + "\n")
         out_param.write("\nMinimal coverage: " + str(config.minimal_coverage) + "\n")
         out_param.write("Minimal identity: " + str(config.minimal_identity) + "\n")
         if config.save_intermediate:
@@ -211,6 +210,9 @@ def main():
         # Set the directory for the reference genome under the main output dir
         ref_genome_output_dir = config.main_output_path + ref_genome + "/"
 
+        # Set the temp folder
+        genome_tmp_out_dir = ref_genome_output_dir + "tmp/"
+
         # Set the blastdbcmd output folder (for the hits sequences includeing the flanking regions)
         genome_blastdbcmd_out_dir = ref_genome_output_dir + config.blastdbcmd_out_dir
 
@@ -267,6 +269,13 @@ def main():
                 print("\nmkdir " + genome_blastdbcmd_out_dir + "has failed")
                 exit()
 
+            # Create a tmp output folder
+            try:
+                os.makedirs(genome_tmp_out_dir)
+            except OSError:
+                print("\nmkdir " + genome_tmp_out_dir + "has failed")
+                exit()
+
             # Create a list of the central regions files for the current ref-genome
             region_files_list = []
             for region_file in os.listdir(genome_central_regions_dir):
@@ -290,10 +299,13 @@ def main():
                         full_path_region_file = genome_central_regions_dir + region_file
                         blast_region_outfile = genome_blast_out_dir + region_name + ".tab"
                         blastdbcmd_region_outfile = genome_blastdbcmd_out_dir + region_name + ".fasta"
+                        blastdbcmd_region_outfile_tmp = genome_tmp_out_dir + region_name + ".fasta"
 
                         process = multiprocessing.Process(target=blast.blast_per_region_process,
                                                           args=(full_path_region_file, blast_region_outfile,
-                                                                blastdbcmd_region_outfile, config.blast_db_file_path,
+                                                                blastdbcmd_region_outfile,
+                                                                blastdbcmd_region_outfile_tmp,
+                                                                config.blast_db_file_path,
                                                                 config.flanking_length, config.minimal_flanking_length,
                                                                 config.minimal_identity, config.minimal_coverage,
                                                                 config.blast_num_threads))

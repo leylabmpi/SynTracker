@@ -26,7 +26,8 @@ def make_blast_db():
     print("...Done!")
 
 
-def blast_per_region_process(full_path_region_file, blast_region_outfile, blastdbcmd_region_outfile, blast_db_file_path,
+def blast_per_region_process(full_path_region_file, blast_region_outfile, blastdbcmd_region_outfile,
+                             blastdbcmd_region_outfile_tmp, blast_db_file_path,
                              flanking_length, minimal_flanking_length, minimal_identity, minimal_coverage, num_threads):
 
     # Run blast for each region
@@ -92,7 +93,7 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
                 if flank_start <= 0:
                     # If the upstream length meets the minimal flanking length, take this sequence
                     # and change the start position to 1
-                    if abs(flank_start) <= flanking_length - minimal_flanking_length:
+                    if abs(flank_start) < flanking_length - minimal_flanking_length:
                         flank_start = 1
                     # The overall upstream length is shorter than the minimal flanking length -> ignore the sequence
                     else:
@@ -100,7 +101,7 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
 
                 # Run blastdbcmd to get the hit including flanking sequences from the database
                 run_blastdbcmd(sample_name, str(flank_start), str(flank_end), strand,
-                                     blastdbcmd_region_outfile, blast_db_file_path)
+                                     blastdbcmd_region_outfile, blastdbcmd_region_outfile_tmp, blast_db_file_path)
 
         else:
             print("\nBLAST output file " + blast_region_outfile + " contains less than two valid samples - "
@@ -123,11 +124,12 @@ def run_blastn(query_file, outfile, blast_db_file_path, minimal_identity, minima
         exit()
 
 
-def run_blastdbcmd(entry, start, end, strand, outfile, blast_db_file_path):
+def run_blastdbcmd(entry, start, end, strand, outfile, outfile_tmp, blast_db_file_path):
     range = start + "-" + end
     args = "-db " + blast_db_file_path + " -entry " + entry + " -range " + range + " -strand " \
            + strand + " -outfmt %f"
-    command = "blastdbcmd " + args + " >> " + str(outfile)
+    #command = "blastdbcmd " + args + " >> " + str(outfile)
+    command = "blastdbcmd " + args + " > " + str(outfile_tmp)
 
     try:
         os.system(command)
@@ -136,4 +138,28 @@ def run_blastdbcmd(entry, start, end, strand, outfile, blast_db_file_path):
         print(command)
         print(err)
         exit()
+
+    # Read the tmp file to check the sequence's length
+    if os.path.isfile(outfile_tmp):
+        seq = ""
+        header = ""
+        with open(outfile_tmp) as file:
+            for line in file:
+                if re.search(r"^>", line):
+                    m = re.search("^>.+:(\d+)-(\d+)\n", line)
+                    if m:
+                        start = m.group(1)
+                        end = m.group(2)
+                    header = line
+                elif re.search(r"^\w+", line):
+                    seq += line
+
+        length = int(end) - int(start) + 1
+
+        # Write this sequence into the blastdbcmd output file only if the length meets the minimal criteria
+        if length >= config.minimal_full_length:
+            out_file = open(outfile, "a")
+            out_file.write(header)
+            out_file.write(seq)
+            out_file.close()
 

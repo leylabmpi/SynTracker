@@ -40,10 +40,10 @@ def parse_arguments():
     parser.add_argument("--coverage", metavar="blast_coverage",
                         help="Minimal blast coverage (optional, default=" + str(config.minimal_coverage) + ")",
                         type=int, default=config.minimal_coverage)
-    parser.add_argument("--length", metavar="flanking_sequences_length",
-                        help="The length of the flanking sequences (from both sides of the BLAST hit). "
-                             "(Optional, default=" + str(config.flanking_length) + ")",
-                        type=int, default=config.flanking_length)
+    parser.add_argument("--length", metavar="region_length",
+                        help="The length of the compared region. "
+                             "(Optional, default=" + str(config.full_length) + ")",
+                        type=int, default=config.full_length)
     parser.add_argument("--save_intermediate", help="Saves R intermediate data structures for debugging purposes",
                         action='store_true', default=False)
     parser.add_argument("--set_seed", metavar="integer_for_seed",
@@ -140,9 +140,10 @@ def parse_arguments():
     # Set the global variables according to the user's input
     config.minimal_identity = args.identity
     config.minimal_coverage = args.coverage
-    config.flanking_length = args.length
-    config.minimal_flanking_length = config.flanking_length - 100
-    config.jump_length = config.region_length + config.flanking_length * 2
+    config.full_length = args.length
+    config.flanking_length = (config.full_length - config.region_length) / 2
+    config.minimal_flanking_length = config.flanking_length * 0.9
+    config.minimal_full_length = config.full_length * 0.9
 
     # Verify that identity is an integer between 0-100
     if config.minimal_identity < 0 or config.minimal_identity > 100:
@@ -178,8 +179,7 @@ def read_conf_file():
     target_dir = ""
     output_dir = ""
     metadata_file = ""
-    region_length = ""
-    flanking_length = ""
+    full_length = ""
     minimal_coverage = ""
     minimal_identity = ""
     seed = ""
@@ -211,15 +211,10 @@ def read_conf_file():
                 if m:
                     metadata_file = m.group(1)
 
-            elif re.search("^Region", line):
-                m = re.search("^Region.+:\s(\d+)\n", line)
+            elif re.search("^Full", line):
+                m = re.search("^Full.+:\s(\d+)\n", line)
                 if m:
-                    region_length = m.group(1)
-
-            elif re.search("^Flanking", line):
-                m = re.search("^Flanking.+:\s(\d+)\n", line)
-                if m:
-                    flanking_length = m.group(1)
+                    full_length = m.group(1)
 
             elif re.search("^Minimal coverage", line):
                 m = re.search("^Minimal coverage:\s(\d+)\n", line)
@@ -293,18 +288,13 @@ def read_conf_file():
         config.is_metadata = True
         config.metadata_file_path = metadata_file
 
-    if region_length != "":
-        config.region_length = int(region_length)
+    if full_length != "":
+        config.full_length = int(full_length)
+        config.flanking_length = (config.full_length - config.region_length) / 2
+        config.minimal_flanking_length = config.flanking_length * 0.9
+        config.minimal_full_length = config.full_length * 0.9
     else:
-        error = "The region length is not written in the config file."
-        return error
-
-    if flanking_length != "":
-        config.flanking_length = int(flanking_length)
-        config.minimal_flanking_length = config.flanking_length - 100
-        config.jump_length = config.region_length + config.flanking_length * 2
-    else:
-        error = "The flanking length is not written in the config file."
+        error = "The full region length is not written in the config file."
         return error
 
     if minimal_coverage != "":

@@ -51,7 +51,7 @@ def create_unique_names():
                     # check the length of the previous contig
                     if contig_counter > 1:
                         # Add the contig only if it's longer than the 'jump length' (5000 by default)
-                        if len(seq) >= config.jump_length:
+                        if len(seq) >= config.full_length:
                             temp_dict = dict()
                             temp_dict['header'] = header
                             temp_dict['seq'] = seq + "\n"
@@ -65,7 +65,7 @@ def create_unique_names():
                     seq += line.rstrip('\n')
 
         # Check the last contig - add it only if it's longer than the 'jump length' (5000 by default)
-        if len(seq) >= config.jump_length:
+        if len(seq) >= config.full_length:
             temp_dict = dict()
             temp_dict['header'] = header
             temp_dict['seq'] = seq + "\n"

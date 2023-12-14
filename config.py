@@ -34,8 +34,9 @@ metadata_file_path = ""
 # Central regions related parameters
 region_length = 1000
 flanking_length = 2000
-minimal_flanking_length = flanking_length - 100
-jump_length = region_length + flanking_length * 2
+minimal_flanking_length = flanking_length * 0.9
+full_length = region_length + flanking_length * 2
+minimal_full_length = full_length * 0.9
 
 # BLAST related parameters
 minimal_coverage = 70

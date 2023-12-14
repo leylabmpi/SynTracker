@@ -98,8 +98,8 @@ options:
                     Minimal blast identity (optional, default=97)
   --coverage [blast_coverage]
                     Minimal blast coverage (optional, default=70)
-  --length [flanking_sequences_length]
-                    The length of the flanking sequences (from both sides of the BLAST hit). (Optional, default=2000)
+  --length [region__length]
+                    The length of the compared region. (Optional, default=5000)
   --save_intermediate   
                     Saves R intermediate data structures for debugging purposes (by default, they are not saved).
   --set_seed [integer_for_seed]
