@@ -333,10 +333,9 @@ def main():
             print("\nThe BLAST stage took " + str(duration) + " seconds.\n")
 
             # Delete the blastdbcmd temporary output folder
-            #if os.path.exists(genome_tmp_out_dir):
-                #print("\nRemoving the temporary folder " + genome_tmp_out_dir + "\n")
-                #shutil.rmtree(genome_tmp_out_dir)
-
+            if os.path.exists(genome_tmp_out_dir):
+                print("\nRemoving the temporary folder " + genome_tmp_out_dir + "\n")
+                shutil.rmtree(genome_tmp_out_dir)
 
         # In 'continue' mode, where only the BLAST stage of the current ref-genome was finished successfully
         else:
