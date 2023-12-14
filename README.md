@@ -92,13 +92,13 @@ options:
   -mode ['new'/'continue']  
                     The running mode: 'new' or 'continue' (default='new') (Start a new run or continue a previous run that has been terminated).
   -cores [number_of_cores]
-                    The number of cores to use for the parallelization of the BLAST-related stages. (Optional, default is the number of computer
-                    available cores).
+                    The number of cores to use for the multi-processed stages of the calculation. 
+                    (Optional, by default SynTracker uses the maximal number of available cores).
   --identity [blast_identity]
                     Minimal blast identity (optional, default=97)
   --coverage [blast_coverage]
                     Minimal blast coverage (optional, default=70)
-  --length [region__length]
+  --length [region_length]
                     The length of the compared region. (Optional, default=5000)
   --save_intermediate   
                     Saves R intermediate data structures for debugging purposes (by default, they are not saved).
