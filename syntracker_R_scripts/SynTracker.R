@@ -71,7 +71,6 @@ big_dfs<-bind_rows(improved_dfs)  # bind to one dataframe
 ###################################
 # Read the sample names dictionary file and add the original sample names to the table
 old_new_names_minimal <- read.table(file=old_new_names_file, header = T, sep="\t")
-#old_new_names_minimal<-old_new_names %>% select(new.sample.name, old.sample.name) %>% distinct(new.sample.name, old.sample.name)
 big_dfs<-left_join(big_dfs, old_new_names_minimal, by=c("sample1"= "new.sample.name")) %>%
 dplyr::rename("temp sample1"="sample1", "sample1" := "old.sample.name" )
 big_dfs<-left_join(big_dfs, old_new_names_minimal, by=c("sample2"= "new.sample.name")) %>%

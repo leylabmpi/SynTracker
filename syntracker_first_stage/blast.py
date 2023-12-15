@@ -141,7 +141,8 @@ def run_blastdbcmd(entry, start, end, strand, minimal_full_length, outfile, outf
 
     # Read the tmp file to check the sequence's length
     if os.path.isfile(outfile_tmp):
-        seq = ""
+        seq_with_newlines = ""
+        seq_only = ""
         header = ""
         with open(outfile_tmp) as file:
             for line in file:
@@ -150,31 +151,18 @@ def run_blastdbcmd(entry, start, end, strand, minimal_full_length, outfile, outf
                 if re.search(r"^>", line):
                     header = line
 
-                    # Plus strand
-                    if re.search(r"^>.+:\d+", line):
-                        m = re.search("^>.+:(\d+)-(\d+)\n", line)
-                        if m:
-                            start = m.group(1)
-                            end = m.group(2)
-
-                    # Minus strand
-                    elif re.search(r"^>.+:c\d+", line):
-                        m = re.search("^>.+:c(\d+)-(\d+)\n", line)
-                        if m:
-                            end = m.group(1)
-                            start = m.group(2)
-
                 # Sequence line
                 elif re.search(r"^\w+", line):
-                    seq += line
+                    m = re.search(r"^(\w+)\n", line)
+                    seq = m.group(1)
+                    seq_only += seq
+                    seq_with_newlines += line
 
-        length = int(end) - int(start) + 1
+        seq_length = len(seq_only)
 
         # Write this sequence into the blastdbcmd output file only if the length meets the minimal criteria
-        if length >= minimal_full_length:
+        if seq_length >= int(minimal_full_length):
             out_file = open(outfile, "a")
             out_file.write(header)
-            out_file.write(seq)
+            out_file.write(seq_with_newlines)
             out_file.close()
-
-
