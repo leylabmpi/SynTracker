@@ -166,3 +166,7 @@ def run_blastdbcmd(entry, start, end, strand, minimal_full_length, outfile, outf
             out_file.write(header)
             out_file.write(seq_with_newlines)
             out_file.close()
+
+        else:
+            print("\nSequence " + header.strip() + " is too short. Length=" + str(seq_length) + "\n")
+
