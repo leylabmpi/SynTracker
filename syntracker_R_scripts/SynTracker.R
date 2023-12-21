@@ -86,8 +86,13 @@ mutate(temp=ifelse(replaced == "yes", as.character(sample1), "no need"),  #if re
 sample1 = ifelse(replaced == "yes", as.character(sample2), as.character(sample1)), #sample1 will hold sample2
 sample2=ifelse(replaced == "yes", temp, as.character(sample2)))  #sample2 will hold temp (the original sample1...)
 
-# Create a big summary table containing all the comparisons and write it to a file under the main output folder
-big_organized_dfs_final<-big_organized_dfs %>% select(sample1, sample2, position_counter, length1, length2, overlap, blocks, syn_score) %>% arrange(sample1,sample2, as.numeric(position_counter)) %>% rename(region=position_counter)
+# Create a big summary table containing all the comparisons with the original sample names, sorted by sample1, sample2, region
+# (The sorting is important for the reproducability of the subsampling given the same seed)
+big_organized_dfs<-big_organized_dfs %>% arrange(sample1,sample2, ref_genome_region)
+
+# Edit this table for the user to have only the necessary information
+big_organized_dfs_final<-big_organized_dfs %>% select(sample1, sample2, ref_genome_region, length1, length2, overlap, blocks, syn_score)
+
 genome_big_table_path<-paste0(output_folder, genome_name , "_synteny_scores_per_region.tab")
 write.table(big_organized_dfs_final, file=genome_big_table_path, sep=",", row.names = FALSE)
 

@@ -93,11 +93,14 @@ synteny_scores<- function(synteny_object) {
 # output: the same list of dataframes, but with addtional columns
 
 add_names<-function(dfs, names) {
-  newnames<-str_extract_all(names, "[[:digit:]]+") # extract the numeric parts of the region name
-  nth<-length(newnames[[1]]) #find the number of the last element
-  newernames<-sapply(newnames,'[', nth) #extract the last element
-  contig<-str_split(names, "_")[[1]][9]
-  dfs %>% mutate(contig=contig, position_counter=newernames, region=paste(contig, position_counter, sep="_" )) # add to the dataframe
+  #newnames<-str_extract_all(names, "[[:digit:]]+") # extract the numeric parts of the region name
+  #nth<-length(newnames[[1]]) #find the number of the last element
+  #newernames<-sapply(newnames,'[', nth) #extract the last element
+  #contig<-str_split(names, "_")[[1]][9]
+  #dfs %>% mutate(contig=contig, position_counter=newernames, region=paste(contig, position_counter, sep="_" )) # add to the dataframe
+
+  # add the names (ref_genome_header + position) to the dataframe
+  dfs %>% mutate(ref_genome_region=names)
 }
 
 
