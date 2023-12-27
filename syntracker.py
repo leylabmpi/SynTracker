@@ -284,6 +284,7 @@ def main():
 
             # A loop over batches of processes in the size of the available number of threads
             batch_counter = 0
+            failed = 0
             for batch_index in range(0, len(region_files_list), config.cpu_num):
 
                 batch_processes = []
@@ -317,10 +318,25 @@ def main():
                         batch_processes.append(process)
 
                 # wait until all the processes in the batch are finished
+                success_counter = 0
                 for proc in batch_processes:
                     proc.join()
+                    exit_code = proc.exitcode
+                    if exit_code == 0:
+                        success_counter += 1
 
-                print("All processes in batch number " + str(batch_counter) + " finished successfully")
+                if success_counter == len(batch_processes):
+                    print("All processes in batch number " + str(batch_counter) + " finished successfully")
+                elif success_counter >= len(batch_processes) * 0.9:
+                    print(str(success_counter) + " processes in batch number " + str(batch_counter)
+                          + " finished successfully")
+                else:
+                    failed = 1
+                    break
+
+            if failed == 1:
+                print("\nThe BLAST search stage did not finish successfully - exiting SunTracker...\n")
+                exit(1)
 
             print("\nBLAST search for all the regions finished successfully\n")
             config.genomes_dict[ref_genome]['finished_blast'] = 1

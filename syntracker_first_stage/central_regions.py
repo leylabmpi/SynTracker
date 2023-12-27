@@ -18,9 +18,11 @@ def find_central_regions(genome_name, central_regions_dir):
         for line in read_file:
             # Find a fasta header
             if re.search(r"^>", line):
-                tmp_title = re.sub(' ', '_', line)
-                tmp_title = re.sub('>', '', tmp_title)
-                tmp_title = tmp_title.rstrip("\n")
+                m = re.search(r"^>(\S+)", line)
+                if m:
+                    tmp_title = m.group(1)
+                # Replace the '|' that may cause problems
+                tmp_title = tmp_title.replace("|", "_")
                 contig_seqs[tmp_title] = ""
             else:
                 newline = line.rstrip("\n")

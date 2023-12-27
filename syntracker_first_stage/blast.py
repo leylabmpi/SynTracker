@@ -1,6 +1,7 @@
 from Bio.Blast.Applications import NcbimakeblastdbCommandline
 from Bio.Blast.Applications import NcbiblastnCommandline
 import os
+import sys
 import csv
 import re
 import config
@@ -32,8 +33,11 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
                              num_threads):
 
     # Run blast for each region
-    run_blastn(full_path_region_file, blast_region_outfile, blast_db_file_path, minimal_identity, minimal_coverage,
-               num_threads)
+    exit_code = run_blastn(full_path_region_file, blast_region_outfile, blast_db_file_path, minimal_identity,
+                           minimal_coverage, num_threads)
+
+    if exit_code != 0:
+        sys.exit(1)
 
     # Count the number of hits in the blast output file
     file = open(blast_region_outfile)
@@ -101,8 +105,11 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
                         continue
 
                 # Run blastdbcmd to get the hit including flanking sequences from the database
-                run_blastdbcmd(sample_name, str(flank_start), str(flank_end), strand, minimal_full_length,
-                               blastdbcmd_region_outfile, blastdbcmd_region_outfile_tmp, blast_db_file_path)
+                exit_code = run_blastdbcmd(sample_name, str(flank_start), str(flank_end), strand, minimal_full_length,
+                                           blastdbcmd_region_outfile, blastdbcmd_region_outfile_tmp, blast_db_file_path)
+
+                if exit_code != 0:
+                    sys.exit(1)
 
         else:
             print("\nBLAST output file " + blast_region_outfile + " contains less than two valid samples - "
@@ -116,13 +123,15 @@ def run_blastn(query_file, outfile, blast_db_file_path, minimal_identity, minima
                                     qcov_hsp_perc=minimal_coverage, num_threads=num_threads)
 
     try:
-        #print("Executing BLAST command:\n" + str(command))
         command()
     except Exception as err:
         print("\nThe following command has failed:")
         print(str(command))
         print(err)
-        exit()
+        return 1
+        #sys.exit()
+
+    return 0
 
 
 def run_blastdbcmd(entry, start, end, strand, minimal_full_length, outfile, outfile_tmp, blast_db_file_path):
@@ -137,7 +146,8 @@ def run_blastdbcmd(entry, start, end, strand, minimal_full_length, outfile, outf
         print("\nThe following command has failed:")
         print(command)
         print(err)
-        exit()
+        return 1
+        #sys.exit()
 
     # Read the tmp file to check the sequence's length
     if os.path.isfile(outfile_tmp):
@@ -169,4 +179,6 @@ def run_blastdbcmd(entry, start, end, strand, minimal_full_length, outfile, outf
 
         else:
             print("\nSequence " + header.strip() + " is too short. Length=" + str(seq_length) + "\n")
+
+    return 0
 

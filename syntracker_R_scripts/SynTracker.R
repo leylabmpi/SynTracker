@@ -87,7 +87,7 @@ sample1 = ifelse(replaced == "yes", as.character(sample2), as.character(sample1)
 sample2=ifelse(replaced == "yes", temp, as.character(sample2)))  #sample2 will hold temp (the original sample1...)
 
 # Create a big summary table containing all the comparisons with the original sample names, sorted by sample1, sample2, region
-# (The sorting is important for the reproducability of the subsampling given the same seed)
+# (The sorting is important for the reproducibility of the subsampling given the same seed)
 big_organized_dfs<-big_organized_dfs %>% arrange(sample1,sample2, ref_genome_region)
 
 # Edit this table for the user to have only the necessary information
