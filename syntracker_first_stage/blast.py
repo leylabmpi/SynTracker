@@ -129,7 +129,6 @@ def run_blastn(query_file, outfile, blast_db_file_path, minimal_identity, minima
         print(str(command))
         print(err)
         return 1
-        #sys.exit()
 
     return 0
 
@@ -147,7 +146,6 @@ def run_blastdbcmd(entry, start, end, strand, minimal_full_length, outfile, outf
         print(command)
         print(err)
         return 1
-        #sys.exit()
 
     # Read the tmp file to check the sequence's length
     if os.path.isfile(outfile_tmp):

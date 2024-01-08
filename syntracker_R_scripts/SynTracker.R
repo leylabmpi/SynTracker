@@ -18,7 +18,7 @@ tmp_folder <- args[6] # A temporary folder for the db files - should be deleted 
 intermediate_file_folder <- args[7] # If not empty - the folder for saving R intermediate objects (if empty - do not save them)
 set_seed_arg <- as.integer(args[8]) # an integer to set the seed (if 0 - do not use seed)
 core_number <- as.integer(args[9])
-metadata_file <- args[10] # If not empty - teh path of the metadata file (if empty - there is no metadata)
+metadata_file <- args[10] # If not empty - the path of the metadata file (if empty - there is no metadata)
 
 ######################################################################################################
 
@@ -33,39 +33,28 @@ if(metadata_file=='NA') {
 
 # List the fasta files from the blastdbcmd output
 filepaths <-list.files(path=blastdbcmd_output_path, full.names=TRUE)
-gene_names<-""
-for (i in 1:length(filepaths)) {gene_names[i]<-basename(filepaths[i])} # extract the file names from the full path
-gene_names<-file_path_sans_ext(gene_names) # remove file extensions
+region_names<-""
+for (i in 1:length(filepaths)) {region_names[i]<-basename(filepaths[i])} # extract the file names from the full path
+region_names<-file_path_sans_ext(region_names) # remove file extensions
 
 # Run the Decipher synteny analysis (in multi-core)
 print("Running synteny analysis using Decipher...")
-objects<-mcmapply(synteny_analysis, filepaths, gene_names, tmp_folder, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number)
-names(objects)<-gene_names
-print("Decipher analysis finished successfully")
 
-# identify iterations of synteny_anlysis that failed for some reason and filter these elements out...
-bad_objects_elements <- sapply(objects, inherits, what = "try-error")
-objects<-objects[!bad_objects_elements]
-narrow<-Filter(function(x) nrow(x) > 1, objects) #filter elements with comparisons of less than 2 valid seqs, if this happened.
-rm(objects)
+# Run synteny analysis, including the calculation of the synteny scores, for each region
+# Returns an object containing all the scores for all the regions
+synteny_scores_dfs<-mcmapply(synteny_analysis_per_region, filepaths, region_names, tmp_folder, intermediate_file_folder, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number)
 
-# If the user asked to save intermediate objects - save the narrow ds to the right folder
-if(intermediate_file_folder != 'NA') {
-    saveRDS(narrow, file = paste0(intermediate_file_folder, "narrow.rds"))
-}
+names(synteny_scores_dfs)<-region_names
 
-# second part: Process synteny objects (multi-core processing)
-cat("\nCalculating synteny scores", "", sep = "\n" )
-dfs<-mcmapply(synteny_scores, narrow, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number)
-bad_dfs_elements <- sapply(dfs, inherits, what = "try-error") #identify iterations of synteny scores that failed for some reason. Mostly (although very rare), those are two hits for the same region
-dfs<-dfs[!bad_dfs_elements] # and filter these elements out...
+# Filter out empty data-frames of regions in which synteny has failed or returned an invalid object
+synteny_scores_dfs_filtered<-Filter(function(x) nrow(x) > 0, synteny_scores_dfs)
 
 if(intermediate_file_folder != 'NA') {
-    saveRDS(dfs, file = paste0(intermediate_file_folder,"dfs.rds"))
+    saveRDS(synteny_scores_dfs_filtered, file = paste0(intermediate_file_folder,"synteny_scores_tables.rds"))
 }
 
 #third part: add names to each table in a new column, merge to one big dataframe, arrange it.
-improved_dfs<-map2(dfs, names(dfs), add_names)
+improved_dfs<-map2(synteny_scores_dfs_filtered, names(synteny_scores_dfs_filtered), add_names)
 big_dfs<-bind_rows(improved_dfs)  # bind to one dataframe
 
 ###################################

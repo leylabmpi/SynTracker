@@ -372,7 +372,7 @@ def main():
 
                 # According to the number of output files - R has finished successfully
                 if outfiles_num == len(config.subsampling_lengths) + 1:
-                    print("\nFound synteny calculation output files- no need to run this stage again")
+                    print("\nFound synteny calculation output files - no need to run this stage again")
                     config.genomes_dict[ref_genome]['finished_R'] = 1
                 else:
                     print("\nNumber of output files doesn't match the expected - run the synteny calculation again")
