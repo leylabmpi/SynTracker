@@ -1,4 +1,4 @@
-name: SynTracker_1_2_1
+name: SynTracker_1_2
 channels:
   - conda-forge
   - bioconda
