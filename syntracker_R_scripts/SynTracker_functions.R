@@ -54,12 +54,14 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
                 saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
             }
 
+            unlink(db) # Remove the DECIPHER db file
             return(per_region_table)
         }
 
     # Otherwise, return an emtpy matrix
     } else {
         cat("\nCannot perform synteny analysis for region", region_name, "- only one hit was found\n", sep = " " )
+        unlink(db) # Remove the DECIPHER db file
         return(per_region_table)
     }
 
@@ -72,6 +74,7 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
           saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
         }
 
+        unlink(db) # Remove the DECIPHER db file
         return(per_region_table)
 
     # Sunteny object is fine
@@ -83,6 +86,9 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
           saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, synteny_object_file_name))
         }
     }
+
+    # Remove the DECIPHER db file
+    unlink(db)
 
     # Continue to calculating the syntey scores only if the synteny analysis returned a valid object
     cat("\nCalculating synteny scores for region ", region_name, sep = "\n" )
