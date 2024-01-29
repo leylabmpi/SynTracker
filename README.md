@@ -71,10 +71,9 @@ python syntracker.py -out SynTracker_output/ -mode continue
 
 ```
 python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] [-out output_directory_path]
-                     [-metadata metadata_file] [-mode 'new'/'continue'] [-cores number_of_cores] [--identity blast_identity]
-                     [--coverage blast_coverage] [--length flanking_sequences_length] [--save_intermediate]
-                     [--set_seed integer_for_seed]
-
+                     [-metadata metadata_file] [-mode 'new'/'continue'] [-cores number_of_cores] 
+                     [-length region_length][--identity blast_identity] [--coverage blast_coverage] 
+                     [--save_intermediate] [--set_seed integer_for_seed]
 
 options:
   -h, --help        show this help message and exit
@@ -94,12 +93,12 @@ options:
   -cores [number_of_cores]
                     The number of cores to use for the multi-processed stages of the calculation. 
                     (Optional, by default SynTracker uses the maximal number of available cores).
+  -length [region_length]
+                    The length of the compared region. (Optional, default=5000)
   --identity [blast_identity]
                     Minimal blast identity (optional, default=97)
   --coverage [blast_coverage]
                     Minimal blast coverage (optional, default=70)
-  --length [region_length]
-                    The length of the compared region. (Optional, default=5000)
   --save_intermediate   
                     Saves R intermediate data structures for debugging purposes (by default, they are not saved).
   --set_seed [integer_for_seed]

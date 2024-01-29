@@ -34,16 +34,16 @@ def parse_arguments():
                         help="The number of cores to use for the parallelization of the BLAST-related stages. "
                              "(Optional, default is the number of computer available cores).",
                         type=int)
+    parser.add_argument("-length", metavar="region_length",
+                        help="The length of the compared region. "
+                             "(Optional, default=" + str(config.full_length) + ")",
+                        type=int, default=config.full_length)
     parser.add_argument("--identity", metavar="blast_identity",
                         help="Minimal blast identity (optional, default=" + str(config.minimal_identity) + ")",
                         type=int, default=config.minimal_identity)
     parser.add_argument("--coverage", metavar="blast_coverage",
                         help="Minimal blast coverage (optional, default=" + str(config.minimal_coverage) + ")",
                         type=int, default=config.minimal_coverage)
-    parser.add_argument("--length", metavar="region_length",
-                        help="The length of the compared region. "
-                             "(Optional, default=" + str(config.full_length) + ")",
-                        type=int, default=config.full_length)
     parser.add_argument("--save_intermediate", help="Saves R intermediate data structures for debugging purposes",
                         action='store_true', default=False)
     parser.add_argument("--set_seed", metavar="integer_for_seed",
