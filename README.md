@@ -4,6 +4,9 @@
 #### A. Fragmentation of the reference genomes and execution of BLASTn search against the target genomes/metagenomes.
 #### B. Calculation of average pairwise synteny scores (APSS).  
 
+More detailed information about SynTracker's pipeline and its usage is available here:
+https://github.com/leylabmpi/SynTracker/blob/master/SynTracker_Manual.pdf
+
 ## Installation
 
 ### Requirements: 
