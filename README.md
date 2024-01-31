@@ -24,14 +24,14 @@ Activate the newly created environment:
 
 
 ## Input
-SynTracker requires three types of data as input (the first two types are mandatory):
+SynTracker requires two types of data as input:
 
 #### a.	Reference genomes: 
 Reference genomes can be provided complete or as a collection of contigs. If using a number of contigs belonging to the same reference genome, all sequences should be placed in a single .fasta file. 
 
 If using more than one reference genome (i.e., analyzing more than one species per run) all reference genome files should be located in the same directory.  
 
-The directory `Sample_input/Reference_genomes/` contains an example reference genome.
+The directory `Sample_Data/Input_example/Reference_genomes/` contains an example reference genome.
 #### b.	Metagenomic assemblies/genomes: 
 These are the metagenomic assemblies (or assembled genomes, if those are studied) that would be compared.
 These data should be organized in per-sample assembly files - i.e., all the contigs assembled from sample X would be kept in a single file. 
@@ -39,10 +39,10 @@ These data should be organized in per-sample assembly files - i.e., all the cont
 If genomes are to be compared, each genome will be stored in a single fasta file. 
 All files should be stored in the same directory (refered below as the "target directory"). 
 
-The directory `Sample_input/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.
+The directory `Sample_Data/output_example/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.
    
-#### c.	Metadata file (optional): 
-The metadata file contains information regarding the genomes/assemblies to be compared. 
+#### Metadata file (optional): 
+In addition to the mandatory input, the user can also provide a metadata file, which contains information regarding the genomes/assemblies that should be compared. 
 The metadata file should be a tab delimited file. One of the columns should contain the sample ID, which is identical to the naming of the fasta files in the "target folder".
 
 ## Usage
@@ -59,7 +59,7 @@ In this case, the user must provide only the path to the output folder of the ru
 
 **A new run:**
 ```
-python syntracker.py -target Sample_input/Target_genomes/ -ref Sample_input/Reference_genomes/ -out SynTracker_output/
+python syntracker.py -target Sample_Data/Input_example/Target_genomes/ -ref Sample_Data/Input_example/Reference_genomes/ -out SynTracker_output/
 ```
 
 **Continue a previous run that has been terminated:**
