@@ -45,6 +45,10 @@ The directory `Sample_Data/output_example/Target_genomes/` contains a collection
 In addition to the mandatory input, the user can also provide a metadata file, which contains information regarding the genomes/assemblies that should be compared. 
 The metadata file should be a tab delimited file. One of the columns should contain the sample ID, which is identical to the naming of the fasta files in the "target folder".
 
+#### Sample input:
+
+The directory ‘Sample_Data/Sample_Input/’, which is included in the SynTracker package, contains one reference genome and a collection of target genomes. It can be used to clarify the structure of the required input files and to test the installation.
+
 ## Usage
 
 SynTracker has two modes of execution: 
@@ -128,4 +132,7 @@ The raw (per-region synteny scores) table is called `synteny_scores_per_region.t
 
 The tables containing the APSS in different subsampling lengths are called `avg_synteny_scores_[subsampling length].txt`.
 
+#### Sample output:
+
+The directory ‘Sample_Data/Output_example/’, which is included in the SynTracker package, contains the output of a SynTracker’s run, using the sample input data with default parameters. It can facilitate the user in better understanding the structure of the output directories and files.
 
