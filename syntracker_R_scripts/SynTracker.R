@@ -108,7 +108,7 @@ regions_sampled<-c(20,30,40,60,80,100,200)
 
 for (i in 1:length(regions_sampled)) {
     if(biggest_group >= regions_sampled[i]){
-        grouped_df<-as.data.frame(mapply(subsample_regions, list(big_organized_dfs), regions_sampled[i], 1, SIMPLIFY = F))
+        grouped_df<-as.data.frame(mapply(subsample_regions, list(big_organized_dfs), regions_sampled[i], set_seed_arg, SIMPLIFY = F))
         write.table(grouped_df, file=paste(output_folder, genome_name, "_avg_synteny_scores_", regions_sampled[i], ".txt", sep=""), row.names=FALSE, sep=",")
         grouped_df_with_genome<-grouped_df %>% mutate(ref_genome=genome_name, .before = sample1)
         write.table(grouped_df_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_", regions_sampled[i], ".txt", sep=""),
