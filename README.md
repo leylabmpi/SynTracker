@@ -77,40 +77,52 @@ python syntracker.py -out SynTracker_output/ -mode continue
 ### A description of all SynTracker's possible command line arguments:
 
 ```
-python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] [-out output_directory_path]
-                     [-metadata metadata_file] [-mode 'new'/'continue'] [-cores number_of_cores] 
-                     [-length region_length][--identity blast_identity] [--coverage blast_coverage] 
-                     [--save_intermediate] [--set_seed integer_for_seed]
+python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] 
+                     [-out output_directory_path] [-metadata metadata_file] 
+                     [-mode 'new'/'continue'] [-cores number_of_cores] [-length region_length] 
+                     [--identity blast_identity] [--coverage blast_coverage] 
+                     [--save_intermediate] [--no_seed]
 
 options:
   -h, --help        show this help message and exit
+  
   -target [target_directory_path]
                     Path of the target directory which contains metagenome assemblies or genomes
+                    
   -ref [ref_directory_path]
                     Path of the references folder containing the reference genomes
+                    
   -out [output_directory_path]
                     The path to the output directory . When running in 'new' mode (the default), this argument is optional. By
                     default a folder named 'Syntracker_output/' will be created under the current directory (if the given path
                     already exists, it will be written over). When running in 'continue' mode, it is mandatory to provide the
                     path to the output directory of the run that is requested to be continued.
+                    
   -metadata [metadata_file]
                     Path to a metadata file (optional). The file should be in CSV format and must include the sample ID.
+  
   -mode ['new'/'continue']  
                     The running mode: 'new' or 'continue' (default='new') (Start a new run or continue a previous run that has been terminated).
+  
   -cores [number_of_cores]
                     The number of cores to use for the multi-processed stages of the calculation. 
                     (Optional, by default SynTracker uses the maximal number of available cores).
+  
   -length [region_length]
                     The length of the compared region. (Optional, default=5000)
+  
   --identity [blast_identity]
                     Minimal blast identity (optional, default=97)
+  
   --coverage [blast_coverage]
                     Minimal blast coverage (optional, default=70)
+  
   --save_intermediate   
                     Saves R intermediate data structures for debugging purposes (by default, they are not saved).
-  --set_seed [integer_for_seed]
-                    An integer number to set the seed for subsampling of n regions per pairwise (by default, the seed is 1).
-  --no_seed         Set no seed for the subsampling of n regions per pairwise (by default, seed=1 is set).
+  
+  --no_seed         Set no seed for the subsampling of n regions per pairwise (optional). 
+                    This means that the average synteny scores may change between SynTracker runs due to the subsampling. 
+                    By default, a seed=1 is set to enable reproducibility between different runs.
 ```
 
 ## Output

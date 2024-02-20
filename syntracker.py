@@ -68,9 +68,7 @@ def main():
         out_param.write("Minimal identity: " + str(config.minimal_identity) + "\n")
         if config.save_intermediate:
             out_param.write("\nSave intermediate: " + str(config.save_intermediate) + "\n")
-        if config.is_set_seed:
-            out_param.write("Seed: " + str(config.seed_num) + "\n")
-        else:
+        if config.is_set_seed is False:
             out_param.write("No seed\n")
 
         ############################################

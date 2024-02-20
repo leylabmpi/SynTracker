@@ -46,11 +46,9 @@ def parse_arguments():
                         type=int, default=config.minimal_coverage)
     parser.add_argument("--save_intermediate", help="Saves R intermediate data structures for debugging purposes",
                         action='store_true', default=False)
-    parser.add_argument("--set_seed", metavar="integer_for_seed",
-                        help="An integer number to set the seed for subsampling of n regions per pairwise "
-                             "(by default, the seed is 1).", type=int)
-    parser.add_argument("--no_seed", help="Set no seed for the subsampling of n regions per pairwise "
-                                          "(by default, seed=1 is set).",
+    parser.add_argument("--no_seed", help="Set no seed for the subsampling of n regions per pairwise. This means that "
+                        "the average synteny scores may change between SynTracker runs. This is an optional parameter. "
+                        "By default, a seed=1 is set to enable reproducibility between different runs.",
                         action='store_true', default=False)
 
     # Parse the given arguments
@@ -162,14 +160,6 @@ def parse_arguments():
         config.is_set_seed = False
         config.seed_num = 0
 
-    elif args.set_seed is not None:
-        if args.set_seed > 0:
-            config.seed_num = args.set_seed
-        else:
-            error = "Error: if you use the '--set_seed' option, it must be followed by an integer to set the seed " \
-                    "with.\n"
-            return error
-
     return error
 
 
@@ -229,14 +219,9 @@ def read_conf_file():
             elif re.search("^Save intermediate", line):
                 config.save_intermediate = True
 
-            elif re.search("^Seed", line):
-                m = re.search("^Seed:\s(\d+)\n", line)
-                if m:
-                    config.is_set_seed = True
-                    seed = m.group(1)
-
             elif re.search("^No seed", line):
                 config.is_set_seed = False
+                config.seed_num = 0
 
             elif re.search("^Reference genomes:", line):
                 in_ref_genomes_list = 1
@@ -308,9 +293,6 @@ def read_conf_file():
     else:
         error = "The minimal identity is not written in the config file."
         return error
-
-    if config.is_set_seed:
-        config.seed_num = int(seed)
 
     # Verify that there is at least one reference genome and that input files exist
     genomes_counter = 0
