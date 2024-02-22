@@ -116,6 +116,8 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
         }
     }
 
+    cat("\nSynteny scores calculation for region", region_name, "finished successfully\n", sep = " " )
+
     return(per_region_table)
 }
 
