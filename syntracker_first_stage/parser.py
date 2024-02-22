@@ -50,6 +50,10 @@ def parse_arguments():
                         "the average synteny scores may change between SynTracker runs. This is an optional parameter. "
                         "By default, a seed=1 is set to enable reproducibility between different runs.",
                         action='store_true', default=False)
+    parser.add_argument("--avg_all", help="Create an additional output table with APSS (Average Pairwise Synteny "
+                                          "Scores), which are based on all the available regions per each pair of "
+                                          "samples (in addition to the output tables, based on the subsampling of n "
+                                          "regions).", action='store_true', default=False)
 
     # Parse the given arguments
     args = parser.parse_args()
@@ -160,6 +164,9 @@ def parse_arguments():
         config.is_set_seed = False
         config.seed_num = 0
 
+    if args.avg_all:
+        config.avg_all = True
+
     return error
 
 
@@ -222,6 +229,9 @@ def read_conf_file():
             elif re.search("^No seed", line):
                 config.is_set_seed = False
                 config.seed_num = 0
+
+            elif re.search("^Average all", line):
+                config.avg_all = True
 
             elif re.search("^Reference genomes:", line):
                 in_ref_genomes_list = 1

@@ -17,8 +17,9 @@ output_summary_folder <- args[5] # The destination folder for the summary output
 tmp_folder <- args[6] # A temporary folder for the db files - should be deleted in the end
 intermediate_file_folder <- args[7] # If not empty - the folder for saving R intermediate objects (if empty - do not save them)
 set_seed_arg <- as.integer(args[8]) # an integer to set the seed (if 0 - do not use seed)
-core_number <- as.integer(args[9])
-metadata_file <- args[10] # If not empty - the path of the metadata file (if empty - there is no metadata)
+avg_all_regions <- args[9] # If it's True, add an output table without subsampling
+core_number <- as.integer(args[10])
+metadata_file <- args[11] # If not empty - the path of the metadata file (if empty - there is no metadata)
 
 ######################################################################################################
 
@@ -96,7 +97,7 @@ write.table(summary_organized_dfs, file=summary_table_path, sep=",", row.names =
 # filter and subsample regions
 ##################
 # find the maximal number of regions/pairwise-comparison:
-biggest_group<-max(big_organized_dfs %>%
+biggest_group<-max(big_organized_dfs_final %>%
                    group_by(sample1, sample2) %>%
                    mutate(regions = n()) %>%
                    ungroup() %>%
@@ -108,12 +109,26 @@ regions_sampled<-c(20,30,40,60,80,100,200)
 
 for (i in 1:length(regions_sampled)) {
     if(biggest_group >= regions_sampled[i]){
-        grouped_df<-as.data.frame(mapply(subsample_regions, list(big_organized_dfs), regions_sampled[i], set_seed_arg, SIMPLIFY = F))
-        write.table(grouped_df, file=paste(output_folder, genome_name, "_avg_synteny_scores_", regions_sampled[i], ".txt", sep=""), row.names=FALSE, sep=",")
+        grouped_df<-as.data.frame(mapply(subsample_regions, list(big_organized_dfs_final), regions_sampled[i], set_seed_arg, SIMPLIFY = F))
+
+        write.table(grouped_df, file=paste(output_folder, genome_name, "_avg_synteny_scores_", regions_sampled[i], "_regions.txt", sep=""), row.names=FALSE, sep=",")
         grouped_df_with_genome<-grouped_df %>% mutate(ref_genome=genome_name, .before = sample1)
-        write.table(grouped_df_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_", regions_sampled[i], ".txt", sep=""),
+        write.table(grouped_df_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_", regions_sampled[i], "_regions.txt", sep=""),
         row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
     }
+}
+
+# Create an additional output table without subsampling if the user has requested for it
+if (avg_all_regions == 'True'){
+    grouped_df_avg_all<-big_organized_dfs_final %>%
+    group_by(sample1, sample2) %>%
+    mutate(regions = n()) %>%
+    summarise(average_score=mean(syn_score), compared_regions=mean(regions))
+
+    write.table(grouped_df_avg_all, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.txt", sep=""), row.names=FALSE, sep=",")
+    grouped_df_all_with_genome<-grouped_df_avg_all %>% mutate(ref_genome=genome_name, .before = sample1)
+    write.table(grouped_df_all_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_all_regions.txt", sep=""),
+    row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
 }
 
 unlink(tmp_folder, recursive = T)

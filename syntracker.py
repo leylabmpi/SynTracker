@@ -70,6 +70,8 @@ def main():
             out_param.write("\nSave intermediate: " + str(config.save_intermediate) + "\n")
         if config.is_set_seed is False:
             out_param.write("No seed\n")
+        if config.avg_all:
+            out_param.write("Average all regions\n")
 
         ############################################
         # Create a directory for the summary output (all genomes together)
@@ -92,6 +94,13 @@ def main():
             out_subsampled = open(file_path, "w")
             out_subsampled.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"Average_score\",\"Compared_regions\"\n")
             out_subsampled.close()
+
+        # If the user added the --avg_all option, create also a file for the average-all-regions output
+        if config.avg_all:
+            file_path = config.summary_output_path + config.avg_all_file_name
+            out_avg_all = open(file_path, "w")
+            out_avg_all.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"Average_score\",\"Compared_regions\"\n")
+            out_avg_all.close()
 
         ################################################################
         # Take care of the naming issues of the target genomes:
@@ -444,16 +453,16 @@ def main():
             command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + \
                         config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + \
                         final_output_path + " " + config.summary_output_path + " " + r_temp_path + " " + " " + \
-                        intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.cpu_num) + " " + \
-                        metadata_file_path
+                        intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.avg_all) + " " + \
+                        str(config.cpu_num) + " " + metadata_file_path
             print("\nRunning the following Rscript command:\n" + command + "\n")
 
             try:
                 subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome,
                                 config.sample_dictionary_table_path,
                                 genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path,
-                                r_temp_path, intermediate_objects_path, str(config.seed_num), str(config.cpu_num),
-                                metadata_file_path], check=True)
+                                r_temp_path, intermediate_objects_path, str(config.seed_num), str(config.avg_all),
+                                str(config.cpu_num), metadata_file_path], check=True)
             except subprocess.CalledProcessError as err:
                 print("\nThe following command has failed:")
                 print(command)

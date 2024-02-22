@@ -81,7 +81,7 @@ python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_pa
                      [-out output_directory_path] [-metadata metadata_file] 
                      [-mode 'new'/'continue'] [-cores number_of_cores] [-length region_length] 
                      [--identity blast_identity] [--coverage blast_coverage] 
-                     [--save_intermediate] [--no_seed]
+                     [--save_intermediate] [--no_seed] [--avg_all]
 
 options:
   -h, --help        show this help message and exit
@@ -123,6 +123,11 @@ options:
   --no_seed         Set no seed for the subsampling of n regions per pairwise (optional). 
                     This means that the average synteny scores may change between SynTracker runs due to the subsampling. 
                     By default, a seed=1 is set to enable reproducibility between different runs.
+ 
+  --avg_all   
+                    Create an additional output table with APSS (Average Pairwise Synteny Scores), 
+                    which are based on all the available regions per each pair of samples 
+                    (in addition to the output tables, based on the subsampling of n regions).                 
 ```
 
 ## Output
@@ -134,10 +139,14 @@ All the output files for a certain reference genome are located under the direct
 The table `[genome name]_synteny_scores_per_region.tab` contains the raw results obtained by the comparison of each two homologous genomic 
 regions in each two metagenomes in which they were detected (or genomes, if those are being compared).
 
-The second type of output tables, `[genome name]_avg_synteny_scores_[subsampling length].txt`, gives the APSS 
+The second type of output tables, `[genome name]_avg_synteny_scores_[subsampling length]_regions.txt`, gives the APSS 
 (Average Pairwise Synteny Score) that was calculated by subsampling N regions per pair of samples
 from the overall regions that appear in the raw table (detailed above). 
 By default, N equals to 20, 30, 40, 60, 80, 100, 200 regions per pair of samples.
+
+In case the user has applied the --avg_all option, an additional table, 
+named `[genome name]_avg_synteny_scores_all_regions.txt` is created too. In this table, the APSS are calculated 
+using all the available regions per each pair of samples. 
 
 #### Summary output (all genomes together):
 Syntracker also creates the same output tables mentioned above for all the references genomes combined together. 
@@ -145,7 +154,10 @@ These summary output files are located under the directory `summary_output/`.
 
 The raw (per-region synteny scores) table is called `synteny_scores_per_region.tab`. 
 
-The tables containing the APSS in different subsampling lengths are called `avg_synteny_scores_[subsampling length].txt`.
+The tables containing the APSS in different subsampling lengths are called `avg_synteny_scores_[subsampling length]_regions.txt`.
+
+The table containing the APSS using all regions (in case of applying the --avg_all option) 
+is called `avg_synteny_scores_all_regions.txt`.
 
 #### Sample output:
 
