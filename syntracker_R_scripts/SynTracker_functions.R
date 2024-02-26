@@ -50,7 +50,7 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
 
             # If the user asked to save intermediate objects - save the corrupted synteny object in an 'error' file
             if(intermediate_file_folder != 'NA') {
-                error_file_name = paste0("synteny_object_error_", region_name, ".rds")
+                error_file_name = paste0("DECIPHER_object_error_", region_name, ".rds")
                 saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
             }
 
@@ -70,7 +70,7 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
 
         # If the user asked to save intermediate objects - save the corrupted synteny object in an 'error' file
         if(intermediate_file_folder != 'NA') {
-          error_file_name = paste0("synteny_object_error_", region_name, ".rds")
+          error_file_name = paste0("DECIPHER_object_error_", region_name, ".rds")
           saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
         }
 
@@ -82,7 +82,7 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
 
         # If the user asked to save intermediate objects - save the synteny object of the current region
         if(intermediate_file_folder != 'NA') {
-          synteny_object_file_name = paste0("synteny_object_", region_name, ".rds")
+          synteny_object_file_name = paste0("DECIPHER_object_", region_name, ".rds")
           saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, synteny_object_file_name))
         }
     }
@@ -117,6 +117,12 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
     }
 
     cat("\nSynteny scores calculation for region", region_name, "finished successfully\n", sep = " " )
+
+    # If the user asked to save intermediate objects - save the synteny scores object of the current region
+        if(intermediate_file_folder != 'NA') {
+          synteny_scores_object_file_name = paste0("synteny_scores_object_", region_name, ".rds")
+          saveRDS(per_region_table, file = paste0(intermediate_file_folder, synteny_scores_object_file_name))
+        }
 
     return(per_region_table)
 }

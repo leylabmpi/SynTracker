@@ -50,10 +50,6 @@ names(synteny_scores_dfs)<-region_names
 # Filter out empty data-frames of regions in which synteny has failed or returned an invalid object
 synteny_scores_dfs_filtered<-Filter(function(x) nrow(x) > 0, synteny_scores_dfs)
 
-if(intermediate_file_folder != 'NA') {
-    saveRDS(synteny_scores_dfs_filtered, file = paste0(intermediate_file_folder,"synteny_scores_tables.rds"))
-}
-
 #third part: add names to each table in a new column, merge to one big dataframe, arrange it.
 improved_dfs<-map2(synteny_scores_dfs_filtered, names(synteny_scores_dfs_filtered), add_names)
 big_dfs<-bind_rows(improved_dfs)  # bind to one dataframe
