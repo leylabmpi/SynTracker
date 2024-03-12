@@ -142,7 +142,7 @@ regions in each two metagenomes in which they were detected (or genomes, if thos
 The second type of output tables, `[genome name]_avg_synteny_scores_[subsampling length]_regions.txt`, gives the APSS 
 (Average Pairwise Synteny Score) that was calculated by subsampling N regions per pair of samples
 from the overall regions that appear in the raw table (detailed above). 
-By default, N equals to 20, 30, 40, 60, 80, 100, 200 regions per pair of samples.
+By default, N equals to 40, 60, 80, 100, 200 regions per pair of samples.
 
 In case the user has applied the --avg_all option, an additional table, 
 named `[genome name]_avg_synteny_scores_all_regions.txt` is created too. In this table, the APSS are calculated 

@@ -101,7 +101,7 @@ biggest_group<-max(big_organized_dfs_final %>%
 
 # create a list of data frames, with different regions subsampling values (i.e., subsample x regions per pair-wise comparison)
 # the conditons is used to avoid subsampling more regions than there are in the biggest group (could result in an error)
-regions_sampled<-c(20,30,40,60,80,100,200)
+regions_sampled<-c(40,60,80,100,200)
 
 for (i in 1:length(regions_sampled)) {
     if(biggest_group >= regions_sampled[i]){

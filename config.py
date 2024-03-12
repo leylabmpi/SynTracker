@@ -51,7 +51,7 @@ cpu_num = 8
 save_intermediate = False
 is_set_seed = True  # Whether to set a seed for the subsampling process (to have same results between different runs)
 seed_num = 1
-subsampling_lengths = [20, 30, 40, 60, 80, 100, 200]
+subsampling_lengths = [40, 60, 80, 100, 200]
 subsampled_regions_file_names = []
 for i in range(len(subsampling_lengths)):
     subsampled_regions_file_names.append("avg_synteny_scores_" + str(subsampling_lengths[i]) + "_regions.txt")

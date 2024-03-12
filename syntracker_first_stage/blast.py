@@ -79,6 +79,9 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
 
         # Continue to run blastdbcmd only if this region has at least two valid samples (with no more than one hit)
         if valid_samples >= 2:
+
+            valid_hits_per_region_counter = 0
+
             for sample in hits_by_sample_dict:
                 sample_name = hits_by_sample_dict[sample]["sample_name"]
                 start = hits_by_sample_dict[sample]["start"]
@@ -108,12 +111,25 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
                 exit_code = run_blastdbcmd(sample_name, str(flank_start), str(flank_end), strand, minimal_full_length,
                                            blastdbcmd_region_outfile, blastdbcmd_region_outfile_tmp, blast_db_file_path)
 
-                if exit_code != 0:
+                if exit_code == 0:
+                    valid_hits_per_region_counter += 1
+                else:
                     sys.exit(1)
 
+            # End of loop - if there are less than 2 valid hits, fail this region
+            if valid_hits_per_region_counter < 2:
+                sys.exit(1)
+
+        # Less than 2 valid hits -> return failure for the region
         else:
             print("\nBLAST output file " + blast_region_outfile + " contains less than two valid samples - "
-                                                                "ignoring it...\n")
+                                                                  "skip it...\n")
+            sys.exit(1)
+
+    # The BLAST outfile contains less than 2 hits -> return failure for this region
+    else:
+        print("\nBLAST output file " + blast_region_outfile + " contains less than two samples - skip it...\n")
+        sys.exit(1)
 
 
 def run_blastn(query_file, outfile, blast_db_file_path, minimal_identity, minimal_coverage, num_threads):

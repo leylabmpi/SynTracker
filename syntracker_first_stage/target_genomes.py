@@ -65,11 +65,16 @@ def create_unique_names():
                     seq += line.rstrip('\n')
 
         # Check the last contig - add it only if it's longer than the 'jump length' (5000 by default)
-        if len(seq) >= config.full_length:
-            temp_dict = dict()
-            temp_dict['header'] = header
-            temp_dict['seq'] = seq + "\n"
-            contigs.append(temp_dict)
+        if contig_counter > 0:
+            if len(seq) >= config.full_length:
+                temp_dict = dict()
+                temp_dict['header'] = header
+                temp_dict['seq'] = seq + "\n"
+                contigs.append(temp_dict)
+
+        # The file contains no contigs
+        else:
+            print("\nThe file " + input_path + " contains no contig.\n")
 
         # Verify that there is at least one contig which meets the length criteria in order to include the sample
         if len(contigs) > 0:
@@ -92,7 +97,10 @@ def create_unique_names():
                 table.write(old_sample_name + "\t" + newfile_name + "\t" + contigs[i]['header'] + "\t" + "contig." +
                             str(i+1) + "\n")
 
-        print("Found " + str(contig_counter) + " contigs, from which " + str(len(contigs)) + " are length-valid\n")
+            print("Found " + str(contig_counter) + " contigs, from which " + str(len(contigs)) + " are length-valid\n")
+
+        else:
+            print("\nThe file " + input_path + " contains no valid contig.\n")
 
     table.close()
     sample_table.close()

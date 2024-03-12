@@ -333,17 +333,20 @@ def main():
                         success_counter += 1
 
                 if success_counter == len(batch_processes):
-                    print("All processes in batch number " + str(batch_counter) + " finished successfully")
+                    print("\nAll processes in batch number " + str(batch_counter) + " finished successfully")
                 elif success_counter >= len(batch_processes) * 0.9:
-                    print(str(success_counter) + " processes in batch number " + str(batch_counter)
+                    print("\n" +str(success_counter) + " processes in batch number " + str(batch_counter)
                           + " finished successfully")
                 else:
-                    failed = 1
-                    break
+                    failed += 1
+                    print("\nBatch number " + str(batch_counter) + " has failed or finished without any valid hits")
+                    continue
 
-            if failed == 1:
-                print("\nThe BLAST search stage did not finish successfully - exiting SunTracker...\n")
-                exit(1)
+            # All the batches failed or finished without results
+            if failed == batch_counter:
+                print("\nThe BLAST search has not finish successfully or found not enough valid hits - "
+                      "skipping the current reference genome (" + ref_genome + ")...\n")
+                continue
 
             print("\nBLAST search for all the regions finished successfully\n")
             config.genomes_dict[ref_genome]['finished_blast'] = 1
