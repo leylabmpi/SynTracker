@@ -36,6 +36,8 @@ def main():
 
     # Set the full path of the running params file
     config.conf_file_path = config.main_output_path + config.conf_file
+    # Set the full path of the logfile
+    config.logfile_path = config.main_output_path + config.logfile
 
     ###############################################################################
     # The current run is new -> start everything from scratch
@@ -53,6 +55,10 @@ def main():
         except OSError:
             print("\nmkdir " + config.main_output_path + " has failed")
             exit()
+
+        # Create the logfile
+        logfile = open(config.logfile_path, "w")
+        logfile.write("Starting a new SynTracker run\n")
 
         # Create the running parameters file
         out_param = open(config.conf_file_path, "w")
@@ -109,6 +115,7 @@ def main():
         # c. merge fasta files to one file
         # d. create a table with old and new names.
         print("\nStart merging metagnome-assemblies / genome files\n")
+        logfile.write("\nStart merging metagnome-assemblies / genome files\n")
 
         # Create a folder for the combined targets
         config.combined_output_path = config.main_output_path + config.combined_output_dir
@@ -121,9 +128,10 @@ def main():
         config.dictionary_table_full_path = config.combined_output_path + config.dictionary_table_full
         config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
 
-        tr.create_unique_names()
+        tr.create_unique_names(logfile)
 
         print("\nMerging metagnome-assemblies / genome files is complete")
+        logfile.write("Merging metagnome-assemblies / genome files is complete\n")
         out_param.write("\nMerging metagnome-assemblies stage is complete\n")
         config.complete_target_merge = True
 
@@ -137,7 +145,7 @@ def main():
             exit()
 
         config.blast_db_file_path = config.blast_db_path + config.blast_db_file
-        blast.make_blast_db()
+        blast.make_blast_db(logfile)
 
         ##############################################################################
         # Extract the reference genomes from the user-defined directory
@@ -168,11 +176,16 @@ def main():
         out_param.write("------------------------------\n\n")
 
         out_param.close()
+        logfile.close()
 
     #######################################################################################################
     # The current run continues a previous run that was stopped -> read the parameters from the conf file
     else:
         print("\nContinue a previous SynTracker run\n")
+
+        logfile = open(config.logfile_path, "a")
+        logfile.write("\nContinue a previous SynTracker run\n")
+        logfile.close()
 
         # Read the parameters and genome list from the conf file
         error = parser.read_conf_file()
@@ -227,7 +240,10 @@ def main():
         # or the BLAST part hasn't finished in a previous run (in case of 'continue' mode)
         if config.running_mode == "new" or config.genomes_dict[ref_genome]['finished_blast'] == 0:
 
-            print("\nProcessing reference genome " + ref_genome)
+            print("\n\nProcessing reference genome " + ref_genome)
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\n\nProcessing reference genome " + ref_genome + "\n")
+            logfile.close()
             out_param = open(config.conf_file_path, "a")
             out_param.write("ref_genome: " + ref_genome + "\n")
             out_param.close()
@@ -256,10 +272,16 @@ def main():
 
             cr.find_central_regions(ref_genome, genome_central_regions_dir)
             print("\nFound central regions. They are located in: " + genome_central_regions_dir)
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\nFound central regions. They are located in: " + genome_central_regions_dir)
+            logfile.close()
 
             ###########################################
             # Step 2: run blast per central region and extract the flanking sequences for each hit
-            print("\nRunning BLAST search for each region of the central regions...")
+            print("\n\nRunning BLAST search for each region of the central regions...")
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\nRunning BLAST search for each region of the central regions...\n")
+            logfile.close()
 
             # Create a main blast output folder
             genome_blast_out_dir = ref_genome_output_dir + config.blast_out_dir
@@ -334,21 +356,39 @@ def main():
 
                 if success_counter == len(batch_processes):
                     print("\nAll processes in batch number " + str(batch_counter) + " finished successfully")
+                    logfile = open(config.logfile_path, "a")
+                    logfile.write("All processes in batch number " + str(batch_counter) + " finished successfully\n")
+                    logfile.close()
                 elif success_counter >= len(batch_processes) * 0.9:
-                    print("\n" +str(success_counter) + " processes in batch number " + str(batch_counter)
+                    print("\n" + str(success_counter) + " processes in batch number " + str(batch_counter)
                           + " finished successfully")
+                    logfile = open(config.logfile_path, "a")
+                    logfile.write(str(success_counter) + " processes in batch number " + str(batch_counter)
+                                  + " finished successfully\n")
+                    logfile.close()
                 else:
                     failed += 1
-                    print("\nBatch number " + str(batch_counter) + " has failed or finished without any valid hits")
+                    print("\nBatch number " + str(batch_counter) + " failed or finished without any valid hits")
+                    logfile = open(config.logfile_path, "a")
+                    logfile.write("Batch number " + str(batch_counter)
+                                  + " failed or finished without any valid hits\n")
+                    logfile.close()
                     continue
 
             # All the batches failed or finished without results
             if failed == batch_counter:
-                print("\nThe BLAST search has not finish successfully or found not enough valid hits - "
+                print("\nThe BLAST search did not finish successfully or found not enough valid hits - "
                       "skipping the current reference genome (" + ref_genome + ")...\n")
+                logfile = open(config.logfile_path, "a")
+                logfile.write("\nThe BLAST search did not finish successfully or found not enough valid hits - "
+                              "skipping the current reference genome (" + ref_genome + ")...\n")
+                logfile.close()
                 continue
 
             print("\nBLAST search for all the regions finished successfully\n")
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\nBLAST search for all the regions finished successfully\n")
+            logfile.close()
             config.genomes_dict[ref_genome]['finished_blast'] = 1
             out_param = open(config.conf_file_path, "a")
             out_param.write("- BLAST finished\n")
@@ -356,11 +396,14 @@ def main():
 
             after = time.time()
             duration = after - before
-            print("\nThe BLAST stage took " + str(duration) + " seconds.\n")
+            #print("\nThe BLAST stage took " + str(duration) + " seconds.\n")
 
             # Delete the blastdbcmd temporary output folder
             if os.path.exists(genome_tmp_out_dir):
                 print("\nRemoving the temporary folder " + genome_tmp_out_dir + "\n")
+                logfile = open(config.logfile_path, "a")
+                logfile.write("\nRemoving the temporary folder " + genome_tmp_out_dir + "\n")
+                logfile.close()
                 shutil.rmtree(genome_tmp_out_dir)
 
         # In 'continue' mode, where only the BLAST stage of the current ref-genome was finished successfully
@@ -383,14 +426,24 @@ def main():
                 # According to the number of output files - R has finished successfully
                 if outfiles_num == len(config.subsampling_lengths) + 1:
                     print("\nFound synteny calculation output files - no need to run this stage again")
+                    logfile = open(config.logfile_path, "a")
+                    logfile.write("\nFound synteny calculation output files - no need to run this stage again\n")
+                    logfile.close()
                     config.genomes_dict[ref_genome]['finished_R'] = 1
                 else:
                     print("\nNumber of output files doesn't match the expected - run the synteny calculation again")
+                    logfile = open(config.logfile_path, "a")
+                    logfile.write("\nNumber of output files doesn't match the expected - "
+                                  "run the synteny calculation again\n")
+                    logfile.close()
                     config.genomes_dict[ref_genome]['finished_R'] = 0
 
             # Probably R hasn't finished successfully -> run it again
             else:
                 print("\nFound no output files of the synteny calculation - run it again")
+                logfile = open(config.logfile_path, "a")
+                logfile.write("\nFound no output files of the synteny calculation - run it again\n")
+                logfile.close()
                 config.genomes_dict[ref_genome]['finished_R'] = 0
 
         ####################################################################################
@@ -446,6 +499,9 @@ def main():
 
             # Run the R script for the synteny analysis of the current reference genome
             print("\nStarting synteny analysis for genome " + ref_genome + "\n")
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\nStarting synteny analysis for genome " + ref_genome + "\n")
+            logfile.close()
             if intermediate_objects_path == "":
                 intermediate_objects_path = "NA"
             if config.metadata_file_path == "":
@@ -459,6 +515,9 @@ def main():
                         intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.avg_all) + " " + \
                         str(config.cpu_num) + " " + metadata_file_path
             print("\nRunning the following Rscript command:\n" + command + "\n")
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\nRunning the following Rscript command:\n" + command + "\n")
+            logfile.close()
 
             try:
                 subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome,
@@ -470,19 +529,28 @@ def main():
                 print("\nThe following command has failed:")
                 print(command)
                 print(err)
+                logfile = open(config.logfile_path, "a")
+                logfile.write("\nThe following command has failed:\n" + command + "\n")
+                logfile.close()
                 exit()
             except Exception as err:
                 print("\nThe following command has failed:")
                 print(command)
                 print(err)
+                logfile = open(config.logfile_path, "a")
+                logfile.write("\nThe following command has failed:\n" + command + "\n")
+                logfile.close()
                 exit()
 
             after = time.time()
             duration = after - before
-            print("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
+            #print("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
 
         # Mark this ref-genome as finished and write in the config.txt file that the synteny stage was finished
         print("\nThe processing of genome " + ref_genome + " completed successfully\n")
+        logfile = open(config.logfile_path, "a")
+        logfile.write("\nThe processing of genome " + ref_genome + " completed successfully\n")
+        logfile.close()
         out_param = open(config.conf_file_path, "a")
         out_param.write("- Synteny finished\n\n")
         out_param.close()

@@ -15,7 +15,7 @@ import os
 import config
 
 
-def create_unique_names():
+def create_unique_names(logfile):
 
     sample_counter = 0
 
@@ -75,6 +75,9 @@ def create_unique_names():
         # The file contains no contigs
         else:
             print("\nThe file " + input_path + " contains no contig.\n")
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\nThe file " + input_path + " contains no contig.\n")
+            logfile.close()
 
         # Verify that there is at least one contig which meets the length criteria in order to include the sample
         if len(contigs) > 0:
@@ -97,10 +100,11 @@ def create_unique_names():
                 table.write(old_sample_name + "\t" + newfile_name + "\t" + contigs[i]['header'] + "\t" + "contig." +
                             str(i+1) + "\n")
 
-            print("Found " + str(contig_counter) + " contigs, from which " + str(len(contigs)) + " are length-valid\n")
-
         else:
-            print("\nThe file " + input_path + " contains no valid contig.\n")
+            print("\nThe file " + input_path + " contains no length-valid contig.\n")
+            logfile = open(config.logfile_path, "a")
+            logfile.write("\nThe file " + input_path + " contains no length-valid contig.\n")
+            logfile.close()
 
     table.close()
     sample_table.close()

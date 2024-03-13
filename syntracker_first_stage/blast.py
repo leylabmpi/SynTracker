@@ -7,7 +7,7 @@ import re
 import config
 
 
-def make_blast_db():
+def make_blast_db(logfile):
 
     input_file = config.combined_renamed_genomes_file_path
 
@@ -15,12 +15,18 @@ def make_blast_db():
                                          parse_seqids=True, title=config.blast_db_file)
     print("\nExecuting the following BLAST command:")
     print(command)
+    logfile = open(config.logfile_path, "a")
+    logfile.write("\nExecuting the following BLAST command:\n" + str(command) + "\n")
+    logfile.close()
 
     try:
         stdout, stderr = command()
         print(stdout)
     except Exception as err:
         print("\nmakeblastdb command has failed for input file: " + input_file)
+        logfile = open(config.logfile_path, "a")
+        logfile.write("\nmakeblastdb command has failed for input file: " + input_file + "\n")
+        logfile.close()
         print(err)
         exit()
 
