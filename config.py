@@ -12,7 +12,7 @@ central_regions_dir = "central_regions/"
 combined_output_dir = "combined_targets/"
 summary_output_dir = "summary_output/"
 summary_output_path = ""
-output_summary_file = "synteny_scores_per_region.tab"
+output_summary_file = "synteny_scores_per_region.csv"
 output_summary_file_path = ""
 final_output_dir = "final_output/"
 r_temp_dir = "R_temp/"
@@ -56,9 +56,9 @@ seed_num = 1
 subsampling_lengths = [40, 60, 80, 100, 200]
 subsampled_regions_file_names = []
 for i in range(len(subsampling_lengths)):
-    subsampled_regions_file_names.append("avg_synteny_scores_" + str(subsampling_lengths[i]) + "_regions.txt")
+    subsampled_regions_file_names.append("avg_synteny_scores_" + str(subsampling_lengths[i]) + "_regions.csv")
 avg_all = False  # Whether to add non-subsampled output (average all the regions per pair of samples)
-avg_all_file_name = "avg_synteny_scores_all_regions.txt"
+avg_all_file_name = "avg_synteny_scores_all_regions.csv"
 
 # Run related parameters
 running_mode = "new"  # Mode can be 'new' or 'continue'

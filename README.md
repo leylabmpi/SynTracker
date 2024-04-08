@@ -136,28 +136,28 @@ options:
 For each given reference genome, SynTracker outputs two types of tables, both include pairwise specific information.
 All the output files for a certain reference genome are located under the directory `[genome_name]/final_output/`.
 
-The table `[genome name]_synteny_scores_per_region.tab` contains the raw results obtained by the comparison of each two homologous genomic 
+The table `[genome name]_synteny_scores_per_region.csv` contains the raw results obtained by the comparison of each two homologous genomic 
 regions in each two metagenomes in which they were detected (or genomes, if those are being compared).
 
-The second type of output tables, `[genome name]_avg_synteny_scores_[subsampling length]_regions.txt`, gives the APSS 
+The second type of output tables, `[genome name]_avg_synteny_scores_[subsampling length]_regions.csv`, gives the APSS 
 (Average Pairwise Synteny Score) that was calculated by subsampling N regions per pair of samples
 from the overall regions that appear in the raw table (detailed above). 
 By default, N equals to 40, 60, 80, 100, 200 regions per pair of samples.
 
 In case the user has applied the --avg_all option, an additional table, 
-named `[genome name]_avg_synteny_scores_all_regions.txt` is created too. In this table, the APSS are calculated 
+named `[genome name]_avg_synteny_scores_all_regions.csv` is created too. In this table, the APSS are calculated 
 using all the available regions per each pair of samples. 
 
 #### Summary output (all genomes together):
 Syntracker also creates the same output tables mentioned above for all the references genomes combined together. 
 These summary output files are located under the directory `summary_output/`.
 
-The raw (per-region synteny scores) table is called `synteny_scores_per_region.tab`. 
+The raw (per-region synteny scores) table is called `synteny_scores_per_region.csv`. 
 
-The tables containing the APSS in different subsampling lengths are called `avg_synteny_scores_[subsampling length]_regions.txt`.
+The tables containing the APSS in different subsampling lengths are called `avg_synteny_scores_[subsampling length]_regions.csv`.
 
 The table containing the APSS using all regions (in case of applying the --avg_all option) 
-is called `avg_synteny_scores_all_regions.txt`.
+is called `avg_synteny_scores_all_regions.csv`.
 
 #### Sample output:
 
