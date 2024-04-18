@@ -77,13 +77,14 @@ sample2=ifelse(replaced == "yes", temp, as.character(sample2)))  #sample2 will h
 big_organized_dfs<-big_organized_dfs %>% arrange(sample1,sample2, ref_genome_region)
 
 # Edit this table for the user to have only the necessary information
-big_organized_dfs_final<-big_organized_dfs %>% select(sample1, sample2, ref_genome_region, length1, length2, overlap, blocks, syn_score)
+big_organized_dfs_final<-big_organized_dfs %>% select(sample1, sample2, ref_genome_region, length1, length2, overlap, blocks, syn_score) %>%
+dplyr::rename(Sample1="sample1", Sample2="sample2",  Region="ref_genome_region",  Length1="length1",  Length2="length2",  Overlap="overlap", Blocks="blocks", Synteny_score="syn_score")
 
 genome_big_table_path<-paste0(output_folder, genome_name , "_synteny_scores_per_region.csv")
 write.table(big_organized_dfs_final, file=genome_big_table_path, sep=",", row.names = FALSE)
 
 # Add a column for the ref genome in the final table
-summary_organized_dfs<-big_organized_dfs_final %>% mutate(ref_genome=genome_name, .before = sample1)
+summary_organized_dfs<-big_organized_dfs_final %>% mutate(ref_genome=genome_name, .before = Sample1)
 
 # Append the per-genome big table to the main table, that contains all the ref-genomes together
 summary_table_path<-paste0(output_summary_folder, "synteny_scores_per_region.csv")
@@ -94,7 +95,7 @@ write.table(summary_organized_dfs, file=summary_table_path, sep=",", row.names =
 ##################
 # find the maximal number of regions/pairwise-comparison:
 biggest_group<-max(big_organized_dfs_final %>%
-                   group_by(sample1, sample2) %>%
+                   group_by(Sample1, Sample2) %>%
                    mutate(regions = n()) %>%
                    ungroup() %>%
                    pull(regions))
@@ -108,7 +109,7 @@ for (i in 1:length(regions_sampled)) {
         grouped_df<-as.data.frame(mapply(subsample_regions, list(big_organized_dfs_final), regions_sampled[i], set_seed_arg, SIMPLIFY = F))
 
         write.table(grouped_df, file=paste(output_folder, genome_name, "_avg_synteny_scores_", regions_sampled[i], "_regions.csv", sep=""), row.names=FALSE, sep=",")
-        grouped_df_with_genome<-grouped_df %>% mutate(ref_genome=genome_name, .before = sample1)
+        grouped_df_with_genome<-grouped_df %>% mutate(ref_genome=genome_name, .before = Sample1)
         write.table(grouped_df_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_", regions_sampled[i], "_regions.csv", sep=""),
         row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
     }
@@ -117,12 +118,12 @@ for (i in 1:length(regions_sampled)) {
 # Create an additional output table without subsampling if the user has requested for it
 if (avg_all_regions == 'True'){
     grouped_df_avg_all<-big_organized_dfs_final %>%
-    group_by(sample1, sample2) %>%
+    group_by(Sample1, Sample2) %>%
     mutate(regions = n()) %>%
-    summarise(average_score=mean(syn_score), compared_regions=mean(regions))
+    summarise(Average_score=mean(Synteny_score), Compared_regions=mean(regions))
 
     write.table(grouped_df_avg_all, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.csv", sep=""), row.names=FALSE, sep=",")
-    grouped_df_all_with_genome<-grouped_df_avg_all %>% mutate(ref_genome=genome_name, .before = sample1)
+    grouped_df_all_with_genome<-grouped_df_avg_all %>% mutate(ref_genome=genome_name, .before = Sample1)
     write.table(grouped_df_all_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_all_regions.csv", sep=""),
     row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
 }

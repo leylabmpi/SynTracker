@@ -15,7 +15,7 @@ NCBI BLAST+
 All the other required packages are contained in the attached conda environment (.yml file).
 
 ### Installing from source:
-Download SynTrakcer latest release from: https://github.com/leylabmpi/SynTracker/releases.
+Download SynTrakcer's latest release from: https://github.com/leylabmpi/SynTracker/releases.
 
 Extract the tar.gz file into the desired working-directory.
 
@@ -54,12 +54,20 @@ The directory ‘Sample_Data/Sample_Input/’, which is included in the SynTrack
 
 ## Usage
 
-SynTracker has two modes of execution: 
-1. 'New' mode: a new run. In this case the user must provide the path to the reference genomes and to the target genomes. 
+SynTracker has two main modes of execution: 
+1. **'New' mode**: a new run. In this case the user must provide the path to the reference genomes and to the target genomes. 
 All the other parameters are optional (including the output directory, which is created by default under 
 the working directory with the name 'Syntracker_output'). 
-2. 'Continue' mode: continue a previous run that has been terminated for some reason without having to start the process from the beginning. 
+
+
+2. **'Continue' mode**: continue a previous run that has been terminated for some reason without having to start the process from the beginning. 
 In this case, the user must provide only the path to the output folder of the run that he wish to continue. 
+
+      Continue a previous run can be done in two ways:
+      
+      a. Using mode = '**continue**': the run will continue from the last reference genome that was previously processed.
+      
+      b. Using mode = '**continue_all_genomes**': process all the reference genomes again, without repeating the stage in which a blast database is built from the target genomes (which can be very time-consuming in case of many targets).
 
 ### Usage examples using the provided sample data
 (With the minimal required mandatory input parameters)
@@ -101,8 +109,11 @@ options:
   -metadata [metadata_file]
                     Path to a metadata file (optional). The file should be in CSV format and must include the sample ID.
   
-  -mode ['new'/'continue']  
-                    The running mode: 'new' or 'continue' (default='new') (Start a new run or continue a previous run that has been terminated).
+  -mode ['new'/'continue'/'continue_all_genomes']  
+                    The running mode: 'new' or 'continue' (default='new'). 
+                    Start a new run or continue a previous run that has been terminated.
+                    'continue' mode: continue from the last reference genome that was previously processed.
+                    'continue_all_genomes' mode: process all the reference genomes again, without repeating the stage in which a blast database is built from the target genomes.
   
   -cores [number_of_cores]
                     The number of cores to use for the multi-processed stages of the calculation. 

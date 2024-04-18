@@ -36,6 +36,10 @@ def main():
 
     # Set the full path of the running params file
     config.conf_file_path = config.main_output_path + config.conf_file
+    # For continue modes, set a path for the old file as well
+    if config.running_mode != "new":
+        config.old_conf_file_path = config.main_output_path + config.old_conf_file
+
     # Set the full path of the logfile
     config.logfile_path = config.main_output_path + config.logfile
 
@@ -132,7 +136,6 @@ def main():
 
         print("\nMerging metagnome-assemblies / genome files is complete")
         logfile.write("Merging metagnome-assemblies / genome files is complete\n")
-        out_param.write("\nMerging metagnome-assemblies stage is complete\n")
         config.complete_target_merge = True
 
         #########################################################
@@ -187,8 +190,11 @@ def main():
         logfile.write("\nContinue a previous SynTracker run\n")
         logfile.close()
 
-        # Read the parameters and genome list from the conf file
-        error = parser.read_conf_file()
+        # Copy the previous config file to the 'config_old' path
+        shutil.copy(config.conf_file_path, config.old_conf_file_path)
+
+        # Read the parameters and genome list from the conf file, according to the continue mode
+        error = parser.read_conf_file(config.old_conf_file_path, config.conf_file_path, config.running_mode)
 
         # Exit if some important parameters were missing from the config file
         if error != "":
@@ -245,7 +251,7 @@ def main():
             logfile.write("\n\nProcessing reference genome " + ref_genome + "\n")
             logfile.close()
             out_param = open(config.conf_file_path, "a")
-            out_param.write("ref_genome: " + ref_genome + "\n")
+            out_param.write("\nref_genome: " + ref_genome + "\n")
             out_param.close()
 
             # If the genome dir already exists - delete it and its content
@@ -407,10 +413,10 @@ def main():
                 shutil.rmtree(genome_tmp_out_dir)
 
         # In 'continue' mode, where only the BLAST stage of the current ref-genome was finished successfully
-        else:
+        #else:
             # Set the names of the folders that should hold the R per-genome output and intermediate files
-            final_output_path = ref_genome_output_dir + config.final_output_dir
-            r_temp_path = ref_genome_output_dir + config.r_temp_dir
+            #final_output_path = ref_genome_output_dir + config.final_output_dir
+            #r_temp_path = ref_genome_output_dir + config.r_temp_dir
 
             # It can happen that the R process continue running successfully until the end, but detached from
             # the parent python process, so it doesn't know that the R has finished (and wrote the results to the outfiles).
@@ -418,33 +424,33 @@ def main():
 
             # If the synteny calculation was finished successfully, the final_output directory with all the per-genome
             # output files should exist and the R_temp folder should have been removed.
-            if os.path.exists(final_output_path) is True and os.path.exists(r_temp_path) is False:
+            #if os.path.exists(final_output_path) is True and os.path.exists(r_temp_path) is False:
 
                 # Check the number of existing per-genome final output files
-                outfiles_num = len(os.listdir(final_output_path))
+                #outfiles_num = len(os.listdir(final_output_path))
 
                 # According to the number of output files - R has finished successfully
-                if outfiles_num == len(config.subsampling_lengths) + 1:
-                    print("\nFound synteny calculation output files - no need to run this stage again")
-                    logfile = open(config.logfile_path, "a")
-                    logfile.write("\nFound synteny calculation output files - no need to run this stage again\n")
-                    logfile.close()
-                    config.genomes_dict[ref_genome]['finished_R'] = 1
-                else:
-                    print("\nNumber of output files doesn't match the expected - run the synteny calculation again")
-                    logfile = open(config.logfile_path, "a")
-                    logfile.write("\nNumber of output files doesn't match the expected - "
-                                  "run the synteny calculation again\n")
-                    logfile.close()
-                    config.genomes_dict[ref_genome]['finished_R'] = 0
+                #if outfiles_num == len(config.subsampling_lengths) + 1:
+                    #print("\nFound synteny calculation output files - no need to run this stage again")
+                    #logfile = open(config.logfile_path, "a")
+                    #logfile.write("\nFound synteny calculation output files - no need to run this stage again\n")
+                    #logfile.close()
+                    #config.genomes_dict[ref_genome]['finished_R'] = 1
+                #else:
+                    #print("\nNumber of output files doesn't match the expected - run the synteny calculation again")
+                    #logfile = open(config.logfile_path, "a")
+                    #logfile.write("\nNumber of output files doesn't match the expected - "
+                     #             "run the synteny calculation again\n")
+                    #logfile.close()
+                    #config.genomes_dict[ref_genome]['finished_R'] = 0
 
             # Probably R hasn't finished successfully -> run it again
-            else:
-                print("\nFound no output files of the synteny calculation - run it again")
-                logfile = open(config.logfile_path, "a")
-                logfile.write("\nFound no output files of the synteny calculation - run it again\n")
-                logfile.close()
-                config.genomes_dict[ref_genome]['finished_R'] = 0
+            #else:
+                #print("\nFound no output files of the synteny calculation - run it again")
+                #logfile = open(config.logfile_path, "a")
+                #logfile.write("\nFound no output files of the synteny calculation - run it again\n")
+                #logfile.close()
+                #config.genomes_dict[ref_genome]['finished_R'] = 0
 
         ####################################################################################
         # Step 3: Run synteny calculation using R

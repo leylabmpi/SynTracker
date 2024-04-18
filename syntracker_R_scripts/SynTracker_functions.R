@@ -242,11 +242,11 @@ subsample_regions<-function(big_organized_dfs, subsampling_value, set_seed_arg) 
   }
   newdf<-big_organized_dfs %>% 
     # pay attention to the grouping variable below - should match the groups specified in the "synteny_score" function
-    group_by(sample1, sample2) %>% 
+    group_by(Sample1, Sample2) %>%
     filter(n() > subsampling_value-1) %>%
     sample_n(subsampling_value) %>% #subsample "subsampling_value" regions from each group
     mutate(regions = n()) %>%
-    summarise(average_score=mean(syn_score), compared_regions=mean(regions)) %>%
+    summarise(Average_score=mean(Synteny_score), Compared_regions=mean(regions)) %>%
     #mutate(ref_genome=genome_name, .before = sample1)
   return(newdf)
 }

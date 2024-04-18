@@ -20,15 +20,16 @@ def parse_arguments():
                              "this argument is optional. By default a folder named \'" + str(config.output_dir) +
                              "\' will be created under the current directory (if the given path already exists, "
                              "it will be written over).\n"
-                             "When running in 'continue' mode, it is mandatory to provide the path to the output "
-                             "directory of the run that is requested to be continued.",
+                             "When running in mode 'continue' or 'continue_all_genomes', it is mandatory to provide "
+                             "the path to the output directory of the run that is requested to be continued.",
                         type=str, default=config.output_dir)
     parser.add_argument("-metadata", metavar="metadata_file",
                         help="Path to a metadata file (optional). The file should be in CSV format and must include "
                              "the sample ID.", type=str)
-    parser.add_argument("-mode", metavar="'new'/'continue'",
-                        help="The running mode: 'new' or 'continue' (default='new') "
-                             "(Start a new run or continue a previous run that has been terminated).",
+    parser.add_argument("-mode", metavar="'new'/'continue'/'continue_all_genomes'",
+                        help="The running mode. Start a new run or continue a previous run that has been terminated (default='new').\n"
+                             "'continue' mode: continue from the last reference genome that was previously processed.\n"
+                             "'continue_all_genomes' mode: process all the reference genomes again, without repeating the stage in which a blast database is built from the target genomes.",
                         type=str, default=config.running_mode)
     parser.add_argument("-cores", metavar="number_of_cores",
                         help="The number of cores to use for the parallelization of the BLAST-related stages. "
@@ -60,10 +61,11 @@ def parse_arguments():
 
     # Set the running mode (new run or continue run)
     if args.mode is not None:
-        if args.mode == "new" or args.mode == "continue":
+        if args.mode == "new" or args.mode == "continue" or args.mode == "continue_all_genomes":
             config.running_mode = args.mode
         else:
-            error = "-mode 'new'/'continue' (Start a new run or continue a previous run that has been stopped).\n"
+            error = "-mode 'new'/'continue'/'continue_all_genomes'\n" \
+                    "(Start a new run or continue a previous run that has been stopped).\n"
             return error
 
     # Verify the mandatory arguments in 'new' mode
@@ -109,12 +111,12 @@ def parse_arguments():
             config.output_dir = args.out
 
     # Verify that the user provided the previous output directory
-    elif config.running_mode == "continue":
+    elif config.running_mode == "continue" or config.running_mode == "continue_all_genomes":
         if args.out is not None:
             config.output_dir = args.out
         else:
-            error = "Error: in 'continue' mode you must provide a path to the output folder of the run that you " \
-                    "wish to continue.\n"
+            error = "Error: in modes 'continue' and 'continue_all_genomes' you must provide a path to the output " \
+                    "folder of the run that you wish to continue.\n"
             return error
 
     # Set the metadata file (if any)
@@ -170,7 +172,7 @@ def parse_arguments():
     return error
 
 
-def read_conf_file():
+def read_conf_file(old_conf_file, new_conf_file, mode):
 
     ref_dir = ""
     target_dir = ""
@@ -183,7 +185,13 @@ def read_conf_file():
     current_genome_name = ""
     error = ""
 
-    with open(config.conf_file_path) as read_conf:
+    # In 'continue_all_genomes', the file should be written again without the list of processed genomes
+    if mode == "continue_all_genomes":
+        out_param = open(new_conf_file, "w")
+        out_param.write("Running Parameters:\n")
+        out_param.write("--------------------\n")
+
+    with open(old_conf_file) as read_conf:
 
         in_ref_genomes_list = 0
         in_processed_genomes_list = 0
@@ -193,48 +201,82 @@ def read_conf_file():
                 if m:
                     ref_dir = m.group(1)
 
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
+
             elif re.search("^Target", line):
                 m = re.search("^Target.+:\s(\S+)\n", line)
                 if m:
                     target_dir = m.group(1)
+
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
 
             elif re.search("^Output", line):
                 m = re.search("^Output.+:\s(\S+)\n", line)
                 if m:
                     output_dir = m.group(1)
 
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
+
             elif re.search("^Metadata", line):
                 m = re.search("^Metadata.+:\s(\S+)\n", line)
                 if m:
                     metadata_file = m.group(1)
+
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
 
             elif re.search("^Full", line):
                 m = re.search("^Full.+:\s(\d+)\n", line)
                 if m:
                     full_length = m.group(1)
 
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
+
             elif re.search("^Minimal coverage", line):
                 m = re.search("^Minimal coverage:\s(\d+)\n", line)
                 if m:
                     minimal_coverage = m.group(1)
+
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
 
             elif re.search("^Minimal identity", line):
                 m = re.search("^Minimal identity:\s(\d+)\n", line)
                 if m:
                     minimal_identity = m.group(1)
 
+                if mode == "continue_all_genomes":
+                    out_param.write(line)
+
             elif re.search("^Save intermediate", line):
                 config.save_intermediate = True
+
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
 
             elif re.search("^No seed", line):
                 config.is_set_seed = False
                 config.seed_num = 0
 
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
+
             elif re.search("^Average all", line):
                 config.avg_all = True
 
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
+
             elif re.search("^Reference genomes:", line):
                 in_ref_genomes_list = 1
+
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
+                    out_param.write("--------------------\n\n")
 
             elif re.search("^\S+\t\S+\n", line) and in_ref_genomes_list and in_processed_genomes_list == 0:
                 m = re.search("^(\S+)\t(\S+)\n", line)
@@ -246,8 +288,20 @@ def read_conf_file():
                 config.genomes_dict[genome_name]['finished_blast'] = 0
                 config.genomes_dict[genome_name]['finished_R'] = 0
 
+                if mode == "continue_all_genomes":
+                    out_param.write(line)
+
             elif re.search("^Processed reference genomes", line):
-                in_processed_genomes_list = 1
+                # In normal continue mode - read the list of processed genomes
+                if mode == "continue":
+                    in_processed_genomes_list = 1
+
+                # In 'continue_all_genomes' mode - no need to read the rest of the file
+                else:
+                    out_param.write("\n" + line)
+                    out_param.write("------------------------------\n\n")
+                    out_param.close()
+                    break
 
             elif re.search("^ref_genome:", line) and in_processed_genomes_list:
                 m = re.search("^ref_genome:\s+(\S+)\n$", line)
@@ -317,3 +371,7 @@ def read_conf_file():
         return error
 
     return ""
+
+
+def write_conf_file_without_processed_genomes(conf_file):
+    pass
