@@ -78,8 +78,15 @@ python syntracker.py -target Sample_Data/Input_example/Target_genomes/ -ref Samp
 ```
 
 **Continue a previous run that has been terminated:**
+
+1. Continue from the last reference genome that has been processed without finishing successfully:
 ```
 python syntracker.py -out SynTracker_output/ -mode continue
+```
+
+2. Process all the reference genome again without repeating the blastDB building stage:
+```
+python syntracker.py -out SynTracker_output/ -mode continue_all_genomes
 ```
 
 ### A description of all SynTracker's possible command line arguments:
