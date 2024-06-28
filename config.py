@@ -1,5 +1,6 @@
 # Paths
-working_dir = ""
+scripts_dir = ""
+R_script = ""
 input_target_dir = ""  # Should be given by the user
 input_ref_dir = ""  # Should be given by the user
 output_dir = "Syntracker_output/"  # Default output dir

@@ -13,8 +13,12 @@ import syntracker_first_stage.blast as blast
 
 def main():
 
-    # Get the working directory
-    config.working_dir = os.getcwd()
+    # Get the scripts directory (it's not necessarily the working dir)
+    config.scripts_dir = os.path.dirname(os.path.abspath(__file__))
+    print("\nScript_dir: " + config.scripts_dir)
+
+    config.R_script = config.scripts_dir + "/syntracker_R_scripts/SynTracker.R"
+    print("R script path: " + config.R_script)
 
     # Parse the command-line arguments
     error = parser.parse_arguments()
@@ -412,46 +416,6 @@ def main():
                 logfile.close()
                 shutil.rmtree(genome_tmp_out_dir)
 
-        # In 'continue' mode, where only the BLAST stage of the current ref-genome was finished successfully
-        #else:
-            # Set the names of the folders that should hold the R per-genome output and intermediate files
-            #final_output_path = ref_genome_output_dir + config.final_output_dir
-            #r_temp_path = ref_genome_output_dir + config.r_temp_dir
-
-            # It can happen that the R process continue running successfully until the end, but detached from
-            # the parent python process, so it doesn't know that the R has finished (and wrote the results to the outfiles).
-            # If this is the case - there is no need to run the synteny scores calculation again for the current ref-genome.
-
-            # If the synteny calculation was finished successfully, the final_output directory with all the per-genome
-            # output files should exist and the R_temp folder should have been removed.
-            #if os.path.exists(final_output_path) is True and os.path.exists(r_temp_path) is False:
-
-                # Check the number of existing per-genome final output files
-                #outfiles_num = len(os.listdir(final_output_path))
-
-                # According to the number of output files - R has finished successfully
-                #if outfiles_num == len(config.subsampling_lengths) + 1:
-                    #print("\nFound synteny calculation output files - no need to run this stage again")
-                    #logfile = open(config.logfile_path, "a")
-                    #logfile.write("\nFound synteny calculation output files - no need to run this stage again\n")
-                    #logfile.close()
-                    #config.genomes_dict[ref_genome]['finished_R'] = 1
-                #else:
-                    #print("\nNumber of output files doesn't match the expected - run the synteny calculation again")
-                    #logfile = open(config.logfile_path, "a")
-                    #logfile.write("\nNumber of output files doesn't match the expected - "
-                     #             "run the synteny calculation again\n")
-                    #logfile.close()
-                    #config.genomes_dict[ref_genome]['finished_R'] = 0
-
-            # Probably R hasn't finished successfully -> run it again
-            #else:
-                #print("\nFound no output files of the synteny calculation - run it again")
-                #logfile = open(config.logfile_path, "a")
-                #logfile.write("\nFound no output files of the synteny calculation - run it again\n")
-                #logfile.close()
-                #config.genomes_dict[ref_genome]['finished_R'] = 0
-
         ####################################################################################
         # Step 3: Run synteny calculation using R
         if config.genomes_dict[ref_genome]['finished_R'] == 0:
@@ -515,7 +479,7 @@ def main():
             else:
                 metadata_file_path = config.metadata_file_path
 
-            command = "Rscript syntracker_R_scripts/SynTracker.R" + " " + ref_genome + " " + \
+            command = "Rscript " + config.R_script + " " + ref_genome + " " + \
                         config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + \
                         final_output_path + " " + config.summary_output_path + " " + r_temp_path + " " + " " + \
                         intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.avg_all) + " " + \
@@ -526,7 +490,7 @@ def main():
             logfile.close()
 
             try:
-                subprocess.run(["Rscript", "syntracker_R_scripts/SynTracker.R", ref_genome,
+                subprocess.run(["Rscript", config.R_script, ref_genome,
                                 config.sample_dictionary_table_path,
                                 genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path,
                                 r_temp_path, intermediate_objects_path, str(config.seed_num), str(config.avg_all),

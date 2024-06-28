@@ -84,7 +84,8 @@ python syntracker.py -target Sample_Data/Input_example/Target_genomes/ -ref Samp
 python syntracker.py -out SynTracker_output/ -mode continue
 ```
 
-2. Process all the reference genome again without repeating the blastDB building stage:
+2. Process all the reference genome again without repeating the blastDB building stage 
+(relevant only for datasets containing more than one reference genome):
 ```
 python syntracker.py -out SynTracker_output/ -mode continue_all_genomes
 ```

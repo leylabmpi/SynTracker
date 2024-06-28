@@ -5,7 +5,163 @@ library(parallel)
 library(tools)
 
 ###### functions file ######
-source("syntracker_R_scripts/SynTracker_functions.R")
+#source("syntracker_R_scripts/SynTracker_functions.R")
+
+############
+# fucntions
+###########
+
+# A function that combines two stages and is applied on each region:
+# First stage: Synteny analysis using DECIPHER - calculate all vs. all hits
+# Second stage: Calculate synteny score for each comparison
+synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermediate_file_folder) {
+
+    # Define a data frame that will hold the synteny scores for all the comparisons in the region:
+    per_region_table<-data.frame("sample1" = character(),
+                               "sample2"= character(),
+                               "length1" = integer(),
+                               "length2" = integer() ,
+                               "overlap" = integer(), #accomulative length of overlapping regions
+                               "Blocks" = integer(), # number of synteny blocks per pairwise comparison
+                               "synteny_score" = integer(), stringsAsFactors = FALSE)
+
+
+    cat("\nRunning synteny analysis using Decipher for region ", region_name, sep = "\n" )
+    seqs <- readDNAStringSet(inpath)
+    db<-paste0(tmp_folder,region_name)
+    flag<-0
+    for (i in seq_along(seqs)) {
+        # The following line adds sequences to the DECIPHER DB:
+        ###########################
+        #   IMPORTANT:
+        # SPLITTING THE names(seqs[i]) yields the "sample.xxx" from the fasta header of the sequence - therefore only one sequence per sample will be used.
+        # If the str_split is removed, potentially more than one contig per sample can be compared - i.e,, substrains in the same sample.
+        Seqs2DB(seqs[i], "XStringSet", db, str_split(names(seqs[i]), "_")[[1]][1])
+        ###########################
+        flag<-flag+1
+    }
+
+    # only run DECIPHER analysis if we have more than 1 sequence matching this specific region.
+    if (flag>1) {
+
+        try_catch <- function(exprs) {!inherits(try(eval(exprs)), "try-error")}
+
+        # Synteny run for this region finished successfully and returned a synteny object
+        if (try_catch(synteny_object_region<-FindSynteny(db, maxSep=15, maxGap = 15))) {
+            cat("\nSynteny analysis for region", region_name, "finished successfully\n", sep = " " )
+
+        # Synteny analysis for this region returned an error - return an empty matrix
+        } else{
+            cat("\nSynteny analysis for region", region_name, "could not be completed\n", sep = " " )
+
+            # If the user asked to save intermediate objects - save the corrupted synteny object in an 'error' file
+            if(intermediate_file_folder != 'NA') {
+                error_file_name = paste0("DECIPHER_object_error_", region_name, ".rds")
+                saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
+            }
+
+            unlink(db) # Remove the DECIPHER db file
+            return(per_region_table)
+        }
+
+    # Otherwise, return an emtpy matrix
+    } else {
+        cat("\nCannot perform synteny analysis for region", region_name, "- only one hit was found\n", sep = " " )
+        unlink(db) # Remove the DECIPHER db file
+        return(per_region_table)
+    }
+
+    # The synteny object was created but something is wrong and it contains no real information
+    if (nrow(synteny_object_region[2,1][[1]]) == 0){
+
+        # If the user asked to save intermediate objects - save the corrupted synteny object in an 'error' file
+        if(intermediate_file_folder != 'NA') {
+          error_file_name = paste0("DECIPHER_object_error_", region_name, ".rds")
+          saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
+        }
+
+        unlink(db) # Remove the DECIPHER db file
+        return(per_region_table)
+
+    # Sunteny object is fine
+    } else{
+
+        # If the user asked to save intermediate objects - save the synteny object of the current region
+        if(intermediate_file_folder != 'NA') {
+          synteny_object_file_name = paste0("DECIPHER_object_", region_name, ".rds")
+          saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, synteny_object_file_name))
+        }
+    }
+
+    # Remove the DECIPHER db file
+    unlink(db)
+
+    # Continue to calculating the syntey scores only if the synteny analysis returned a valid object
+    cat("\nCalculating synteny scores for region ", region_name, sep = "\n" )
+
+    # for each two samples, create the values to be kept in the dataframe (assing to one row).
+    for (i in 2:ncol(synteny_object_region)) {
+        for (j in 1:(i-1)) {
+            sample1<-as.character(str_split(colnames(synteny_object_region)[j], "_")[[1]][1]) # pay attention to the str_split: could (and should) be changed to suit other naming formats !
+            sample2<-as.character(str_split(colnames(synteny_object_region)[i], "_")[[1]][1]) # pay attention to the str_split: could (and should) be changed to suit other naming formats !
+            length1<-synteny_object_region[j,j][[1]]
+            length2<-synteny_object_region[i,i][[1]]
+            overlap<-sum(synteny_object_region[j,i][[1]][,4])
+            blocks<-nrow(synteny_object_region[i,j][[1]])
+
+            # calculate the synteny score
+            if (length1>length2) {
+                syn_score<-1+log10((overlap/length2)/blocks)
+            }
+            else {
+                syn_score<-1+log10((overlap/length1)/blocks)
+            }
+            temprow<-data.frame(sample1,sample2,length1,length2,overlap,blocks,syn_score)
+
+            per_region_table<-rbind(per_region_table, temprow)
+        }
+    }
+
+    cat("\nSynteny scores calculation for region", region_name, "finished successfully\n", sep = " " )
+
+    # If the user asked to save intermediate objects - save the synteny scores object of the current region
+        if(intermediate_file_folder != 'NA') {
+          synteny_scores_object_file_name = paste0("synteny_scores_object_", region_name, ".rds")
+          saveRDS(per_region_table, file = paste0(intermediate_file_folder, synteny_scores_object_file_name))
+        }
+
+    return(per_region_table)
+}
+
+
+# add the names (ref_genome_header + position) to the dataframe
+add_names<-function(dfs, names) {
+  dfs %>% mutate(ref_genome_region=names)
+}
+
+
+# subsample_regions: a function to sample x regions per pairwise comparison and calculate APSS (Average Pairwise Synteny Scores)
+# inputs:
+# 1. big_organized_dfs = dataframe that holds per-region pairwise comparisons (multiple regions, multiple pairs)
+# 2. subsampling_value = how many regions/pairwise to sample.
+# output: dataframe with APSS values (col name is "average_score"), based on "subsampling_value" regions per pair. Pairs with <"subsampling_value" regions are filtererd out.
+subsample_regions<-function(big_organized_dfs, subsampling_value, set_seed_arg) {
+  if(set_seed_arg != 0) {
+    set.seed(set_seed_arg)
+    cat("Using set.seed for reproducable subsampling. Seed: ", set_seed_arg, sep = " " )
+    cat("\n\n")
+  }
+  newdf<-big_organized_dfs %>%
+    # pay attention to the grouping variable below - should match the groups specified in the "synteny_score" function
+    group_by(Sample1, Sample2) %>%
+    filter(n() > subsampling_value-1) %>%
+    sample_n(subsampling_value) %>% #subsample "subsampling_value" regions from each group
+    mutate(regions = n()) %>%
+    summarise(Average_score=mean(Synteny_score), Compared_regions=mean(regions)) %>%
+    #mutate(ref_genome=genome_name, .before = sample1)
+  return(newdf)
+}
+###########################################################################################################################
 
 # Getting the arguments from the python script
 args <- commandArgs(trailingOnly = TRUE)
@@ -131,4 +287,3 @@ if (avg_all_regions == 'True'){
 unlink(tmp_folder, recursive = T)
 
 cat("\nFinished synteny analysis for:", genome_name, sep = "\n" )
-
