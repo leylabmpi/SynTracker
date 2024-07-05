@@ -80,8 +80,6 @@ def main():
         out_param.write("\nFull regions length: " + str(config.full_length) + "\n")
         out_param.write("\nMinimal coverage: " + str(config.minimal_coverage) + "\n")
         out_param.write("Minimal identity: " + str(config.minimal_identity) + "\n")
-        if config.save_intermediate:
-            out_param.write("\nSave intermediate: " + str(config.save_intermediate) + "\n")
         if config.is_set_seed is False:
             out_param.write("No seed\n")
         if config.avg_all:
@@ -422,37 +420,37 @@ def main():
 
             before = time.time()
 
-            # Create a folder for R final output tables
+            # Define a folder for R final output tables
             final_output_path = ref_genome_output_dir + config.final_output_dir
-
-            # If the R final output dir already exists - delete it and its content
-            if os.path.exists(final_output_path):
-                print("\nDirectory " + final_output_path + " already exists - deleting its content")
-                shutil.rmtree(final_output_path)
-            # Create a new R final output dir
-            try:
-                os.makedirs(final_output_path)
-            except OSError:
-                print("\nmkdir " + final_output_path + "has failed")
-                exit()
-
-            # Create a folder for R temporary files (will be deleted in the end of the run)
+            # Define a folder for R temporary files (will be deleted in the end of the run)
             r_temp_path = ref_genome_output_dir + config.r_temp_dir
+            # Create a folder for R intermediate objects - to be used in continue mode
+            intermediate_objects_path = ref_genome_output_dir + config.r_intermediate_objects_dir
 
-            # If the R temporary files dir already exists - delete it and its content
-            if os.path.exists(r_temp_path):
-                print("\nDirectory " + r_temp_path + " already exists - deleting its content")
-                shutil.rmtree(r_temp_path)
-            # Create a new R temporary files dir
-            try:
-                os.makedirs(r_temp_path)
-            except OSError:
-                print("\nmkdir " + r_temp_path + "has failed")
-                exit()
+            # Only in 'new' mode, delete all the previous R directories if any
+            if config.running_mode == "new":
 
-            # Create a folder for R intermediate objects if the user has asked for it (for debugging purposes)
-            if config.save_intermediate:
-                intermediate_objects_path = ref_genome_output_dir + config.r_intermediate_objects_dir
+                # If the R final output dir already exists - delete it and its content
+                if os.path.exists(final_output_path):
+                    print("\nDirectory " + final_output_path + " already exists - deleting its content")
+                    shutil.rmtree(final_output_path)
+                # Create a new R final output dir
+                try:
+                    os.makedirs(final_output_path)
+                except OSError:
+                    print("\nmkdir " + final_output_path + "has failed")
+                    exit()
+
+                # If the R temporary files dir already exists - delete it and its content
+                if os.path.exists(r_temp_path):
+                    print("\nDirectory " + r_temp_path + " already exists - deleting its content")
+                    shutil.rmtree(r_temp_path)
+                # Create a new R temporary files dir
+                try:
+                    os.makedirs(r_temp_path)
+                except OSError:
+                    print("\nmkdir " + r_temp_path + "has failed")
+                    exit()
 
                 # If the R intermediate objects dir already exists - delete it and its content
                 if os.path.exists(intermediate_objects_path):
@@ -463,17 +461,13 @@ def main():
                     os.makedirs(intermediate_objects_path)
                 except OSError:
                     print("\nmkdir " + intermediate_objects_path + "has failed - cannot save R intermediate objects")
-                    config.save_intermediate = False
-            else:
-                intermediate_objects_path = ""
 
             # Run the R script for the synteny analysis of the current reference genome
             print("\nStarting synteny analysis for genome " + ref_genome + "\n")
             logfile = open(config.logfile_path, "a")
             logfile.write("\nStarting synteny analysis for genome " + ref_genome + "\n")
             logfile.close()
-            if intermediate_objects_path == "":
-                intermediate_objects_path = "NA"
+
             if config.metadata_file_path == "":
                 metadata_file_path = "NA"
             else:
@@ -481,9 +475,9 @@ def main():
 
             command = "Rscript " + config.R_script + " " + ref_genome + " " + \
                         config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + \
-                        final_output_path + " " + config.summary_output_path + " " + r_temp_path + " " + " " + \
+                        final_output_path + " " + config.summary_output_path + " " + r_temp_path + " " + \
                         intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.avg_all) + " " + \
-                        str(config.cpu_num) + " " + metadata_file_path
+                        str(config.cpu_num) + " " + metadata_file_path + " " + config.logfile_path
             print("\nRunning the following Rscript command:\n" + command + "\n")
             logfile = open(config.logfile_path, "a")
             logfile.write("\nRunning the following Rscript command:\n" + command + "\n")
@@ -494,7 +488,7 @@ def main():
                                 config.sample_dictionary_table_path,
                                 genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path,
                                 r_temp_path, intermediate_objects_path, str(config.seed_num), str(config.avg_all),
-                                str(config.cpu_num), metadata_file_path], check=True)
+                                str(config.cpu_num), metadata_file_path, config.logfile_path], check=True)
             except subprocess.CalledProcessError as err:
                 print("\nThe following command has failed:")
                 print(command)

@@ -14,7 +14,7 @@ library(tools)
 # A function that combines two stages and is applied on each region:
 # First stage: Synteny analysis using DECIPHER - calculate all vs. all hits
 # Second stage: Calculate synteny score for each comparison
-synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermediate_file_folder) {
+synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermediate_file_folder, logfile) {
 
     # Define a data frame that will hold the synteny scores for all the comparisons in the region:
     per_region_table<-data.frame("sample1" = character(),
@@ -49,52 +49,47 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
         # Synteny run for this region finished successfully and returned a synteny object
         if (try_catch(synteny_object_region<-FindSynteny(db, maxSep=15, maxGap = 15))) {
             cat("\nSynteny analysis for region", region_name, "finished successfully\n", sep = " " )
+            cat("\nSynteny analysis for region", region_name, "finished successfully\n", sep = " ", file=logfile, append=TRUE)
 
         # Synteny analysis for this region returned an error - return an empty matrix
         } else{
-            cat("\nSynteny analysis for region", region_name, "could not be completed\n", sep = " " )
-
-            # If the user asked to save intermediate objects - save the corrupted synteny object in an 'error' file
-            if(intermediate_file_folder != 'NA') {
-                error_file_name = paste0("DECIPHER_object_error_", region_name, ".rds")
-                saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
-            }
+            cat("\nSynteny analysis for region", region_name, "could not be completed\n", sep = " ")
+            cat("\nSynteny analysis for region", region_name, "could not be completed\n", sep = " ", file=logfile, append=TRUE)
 
             unlink(db) # Remove the DECIPHER db file
+            # Add a '_done' suffix to the region-specific file in the blastdbcmd folder
+            # (so this region will not be analysed again in case the user repeats the run in continue mode)
+            file.rename(inpath, paste0(inpath,"_done"))
             return(per_region_table)
         }
 
     # Otherwise, return an emtpy matrix
     } else {
-        cat("\nCannot perform synteny analysis for region", region_name, "- only one hit was found\n", sep = " " )
-        unlink(db) # Remove the DECIPHER db file
+        cat("\nCannot perform synteny analysis for region", region_name, "- only one hit was found\n", sep = " ")
+        cat("\nCannot perform synteny analysis for region", region_name, "- only one hit was found\n", sep = " ", file=logfile, append=TRUE)
+        # Remove the DECIPHER db file
+        unlink(db)
+        # Add a '_done' suffix to the region-specific file in the blastdbcmd folder
+        # (so this region will not be analysed again in case the user repeats the run in continue mode)
+        file.rename(inpath, paste0(inpath,"_done"))
         return(per_region_table)
     }
 
     # The synteny object was created but something is wrong and it contains no real information
     if (nrow(synteny_object_region[2,1][[1]]) == 0){
 
-        # If the user asked to save intermediate objects - save the corrupted synteny object in an 'error' file
-        if(intermediate_file_folder != 'NA') {
-          error_file_name = paste0("DECIPHER_object_error_", region_name, ".rds")
-          saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, error_file_name))
-        }
-
         unlink(db) # Remove the DECIPHER db file
+        # Add a '_done' suffix to the region-specific file in the blastdbcmd folder
+        # (so this region will not be analysed again in case the user repeats the run in continue mode)
+        file.rename(inpath, paste0(inpath,"_done"))
         return(per_region_table)
-
-    # Sunteny object is fine
-    } else{
-
-        # If the user asked to save intermediate objects - save the synteny object of the current region
-        if(intermediate_file_folder != 'NA') {
-          synteny_object_file_name = paste0("DECIPHER_object_", region_name, ".rds")
-          saveRDS(synteny_object_region, file = paste0(intermediate_file_folder, synteny_object_file_name))
-        }
     }
 
     # Remove the DECIPHER db file
     unlink(db)
+    # Add a '_done' suffix to the region-specific file in the blastdbcmd folder
+    # (so this region will not be analysed again in case the user repeats the run in continue mode)
+    file.rename(inpath, paste0(inpath,"_done"))
 
     # Continue to calculating the syntey scores only if the synteny analysis returned a valid object
     cat("\nCalculating synteny scores for region ", region_name, sep = "\n" )
@@ -122,13 +117,12 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
         }
     }
 
-    cat("\nSynteny scores calculation for region", region_name, "finished successfully\n", sep = " " )
+    cat("\nSynteny scores calculation for region", region_name, "finished successfully\n", sep = " ")
+    cat("\nSynteny scores calculation for region", region_name, "finished successfully\n", sep = " ", file=logfile, append=TRUE)
 
-    # If the user asked to save intermediate objects - save the synteny scores object of the current region
-        if(intermediate_file_folder != 'NA') {
-          synteny_scores_object_file_name = paste0("synteny_scores_object_", region_name, ".rds")
-          saveRDS(per_region_table, file = paste0(intermediate_file_folder, synteny_scores_object_file_name))
-        }
+    # Save the synteny scores object of the current region to be used in a continuing run when needed
+    synteny_scores_object_file_name = paste0(region_name, ".rds")
+    saveRDS(per_region_table, file = paste0(intermediate_file_folder, synteny_scores_object_file_name))
 
     return(per_region_table)
 }
@@ -171,11 +165,12 @@ blastdbcmd_output_path <- args[3] # The directory in which the fasta sequences (
 output_folder <- args[4] # The  destination folder for the per-genome output tables
 output_summary_folder <- args[5] # The destination folder for the summary output tables (all genomes together)
 tmp_folder <- args[6] # A temporary folder for the db files - should be deleted in the end
-intermediate_file_folder <- args[7] # If not empty - the folder for saving R intermediate objects (if empty - do not save them)
+intermediate_file_folder <- args[7] # In continue mode, it contains the previously processed regions (if any)
 set_seed_arg <- as.integer(args[8]) # an integer to set the seed (if 0 - do not use seed)
 avg_all_regions <- args[9] # If it's True, add an output table without subsampling
 core_number <- as.integer(args[10])
 metadata_file <- args[11] # If not empty - the path of the metadata file (if empty - there is no metadata)
+logfile <- args[12] # The path of the logfile
 
 ######################################################################################################
 
@@ -188,23 +183,62 @@ if(metadata_file=='NA') {
     print("Running analysis with Metadata file")
 }
 
+# Define an empty list for the synteny scores per region dfs
+synteny_scores_dfs_total <- list()
+total_region_names <- character()
+
+# Check if there are files in the intermediate_file_folder. If so, it is a continue mode run:
+# 1. Read the already processed regions to a list of dfs
+# 2. Run the synteny analysis only for the regions that have not been processed yet
+# 3. Unite the two lists of dfs for final results
+checkfiles <-list.files(path=intermediate_file_folder, full.names=TRUE)
+if(length(checkfiles)>0) {
+    cat("\nFound", length(checkfiles), "regions that were already processed in a previous run\n", sep = " ", file=logfile, append=TRUE)
+
+    # Create a list of region names
+    processed_region_names<-""
+    for (i in 1:length(checkfiles)) {processed_region_names[i]<-basename(checkfiles[i])} # extract the file names from the full path
+    processed_region_names<-file_path_sans_ext(processed_region_names) # remove file extensions
+    total_region_names <- c(processed_region_names)
+
+    # Read the saved RDS score-per-region objects
+    for (i in 1:length(checkfiles)) {
+        scores_per_region_df <- readRDS(checkfiles[i])
+        scores_per_region_df_list <- list(scores_per_region_df)
+        synteny_scores_dfs_total <- c(synteny_scores_dfs_total, scores_per_region_df_list)
+    }
+}
+
 # List the fasta files from the blastdbcmd output
-filepaths <-list.files(path=blastdbcmd_output_path, full.names=TRUE)
-region_names<-""
-for (i in 1:length(filepaths)) {region_names[i]<-basename(filepaths[i])} # extract the file names from the full path
-region_names<-file_path_sans_ext(region_names) # remove file extensions
+# (files that have already been processed will have '_done' suffix and shouldn't be listed)
+filepaths <-list.files(path=blastdbcmd_output_path, full.names=TRUE, pattern="fasta$")
+# Make sure that there are files that haven't been processed yet in order to run the DECIPHER analysis
+if(length(filepaths)>0) {
+    print("\nFound regions that haven't been processed yet\n")
+    cat("\nFound", length(filepaths), "regions that haven't been processed yet\n", sep = " ", file=logfile, append=TRUE)
+    region_names<-""
+    for (i in 1:length(filepaths)) {region_names[i]<-basename(filepaths[i])} # extract the file names from the full path
+    region_names<-file_path_sans_ext(region_names) # remove file extensions
 
-# Run the Decipher synteny analysis (in multi-core)
-print("Running synteny analysis using Decipher...")
+    # Run the Decipher synteny analysis (in multi-core)
+    print("Running synteny analysis using Decipher...")
+    cat("\nGoing to run synteny analysis using Decipher for", length(filepaths), "regions...\n", sep = " ", file=logfile, append=TRUE)
 
-# Run synteny analysis, including the calculation of the synteny scores, for each region
-# Returns an object containing all the scores for all the regions
-synteny_scores_dfs<-mcmapply(synteny_analysis_per_region, filepaths, region_names, tmp_folder, intermediate_file_folder, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number)
+    # Run synteny analysis, including the calculation of the synteny scores, for each region
+    # Returns an object containing all the scores for all the regions
+    synteny_scores_dfs<-mcmapply(synteny_analysis_per_region, filepaths, region_names, tmp_folder, intermediate_file_folder, logfile, SIMPLIFY = F, mc.preschedule=F, mc.cores=core_number)
+    cat("\nNumber of processed regions (not necessarily valid:)", length(synteny_scores_dfs), "\n", sep = " ", file=logfile, append=TRUE)
 
-names(synteny_scores_dfs)<-region_names
+    synteny_scores_dfs_total <- c(synteny_scores_dfs_total, synteny_scores_dfs)
+    total_region_names <- c(total_region_names, region_names)
+}
+
+cat("\nTotal number of processed regions in current run and previous runs (not necessarily valid:)", length(synteny_scores_dfs_total), "\n", sep = " ", file=logfile, append=TRUE)
+
+names(synteny_scores_dfs_total)<-total_region_names
 
 # Filter out empty data-frames of regions in which synteny has failed or returned an invalid object
-synteny_scores_dfs_filtered<-Filter(function(x) nrow(x) > 0, synteny_scores_dfs)
+synteny_scores_dfs_filtered<-Filter(function(x) nrow(x) > 0, synteny_scores_dfs_total)
 
 #third part: add names to each table in a new column, merge to one big dataframe, arrange it.
 improved_dfs<-map2(synteny_scores_dfs_filtered, names(synteny_scores_dfs_filtered), add_names)
@@ -234,7 +268,8 @@ big_organized_dfs<-big_organized_dfs %>% arrange(sample1,sample2, ref_genome_reg
 
 # Edit this table for the user to have only the necessary information
 big_organized_dfs_final<-big_organized_dfs %>% select(sample1, sample2, ref_genome_region, length1, length2, overlap, blocks, syn_score) %>%
-dplyr::rename(Sample1="sample1", Sample2="sample2",  Region="ref_genome_region",  Length1="length1",  Length2="length2",  Overlap="overlap", Blocks="blocks", Synteny_score="syn_score")
+dplyr::rename(Sample1="sample1", Sample2="sample2",  Region="ref_genome_region",  Length1="length1",  Length2="length2",  Overlap="overlap", Blocks="blocks", Synteny_score="syn_score") %>%
+dplyr::distinct()
 
 genome_big_table_path<-paste0(output_folder, genome_name , "_synteny_scores_per_region.csv")
 write.table(big_organized_dfs_final, file=genome_big_table_path, sep=",", row.names = FALSE)

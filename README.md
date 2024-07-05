@@ -65,9 +65,10 @@ In this case, the user must provide only the path to the output folder of the ru
 
       Continue a previous run can be done in two ways:
       
-      a. Using mode = '**continue**': the run will continue from the last reference genome that was previously processed.
+      a. Using mode = '**continue**': the run will continue from the point it stopped within the last reference genome that has been processed without finishing successfully.
       
-      b. Using mode = '**continue_all_genomes**': process all the reference genomes again, without repeating the stage in which a blast database is built from the target genomes (which can be very time-consuming in case of many targets).
+      b. Using mode = '**continue_all_genomes**': process all the reference genomes again, without repeating the stage in which a blast database is built from the target genomes (which can be very time-consuming in case of many targets). 
+It only makes sense to use this mode with when running more than one reference genome.
 
 ### Usage examples using the provided sample data
 (With the minimal required mandatory input parameters)
@@ -96,8 +97,7 @@ python syntracker.py -out SynTracker_output/ -mode continue_all_genomes
 python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] 
                      [-out output_directory_path] [-metadata metadata_file] 
                      [-mode 'new'/'continue'] [-cores number_of_cores] [-length region_length] 
-                     [--identity blast_identity] [--coverage blast_coverage] 
-                     [--save_intermediate] [--no_seed] [--avg_all]
+                     [--identity blast_identity] [--coverage blast_coverage] [--no_seed] [--avg_all]
 
 options:
   -h, --help        show this help message and exit
@@ -135,9 +135,6 @@ options:
   
   --coverage [blast_coverage]
                     Minimal blast coverage (optional, default=70)
-  
-  --save_intermediate   
-                    Saves R intermediate data structures for debugging purposes (by default, they are not saved).
   
   --no_seed         Set no seed for the subsampling of n regions per pairwise (optional). 
                     This means that the average synteny scores may change between SynTracker runs due to the subsampling. 

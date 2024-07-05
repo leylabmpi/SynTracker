@@ -45,8 +45,6 @@ def parse_arguments():
     parser.add_argument("--coverage", metavar="blast_coverage",
                         help="Minimal blast coverage (optional, default=" + str(config.minimal_coverage) + ")",
                         type=int, default=config.minimal_coverage)
-    parser.add_argument("--save_intermediate", help="Saves R intermediate data structures for debugging purposes",
-                        action='store_true', default=False)
     parser.add_argument("--no_seed", help="Set no seed for the subsampling of n regions per pairwise. This means that "
                         "the average synteny scores may change between SynTracker runs. This is an optional parameter. "
                         "By default, a seed=1 is set to enable reproducibility between different runs.",
@@ -159,9 +157,6 @@ def parse_arguments():
         error = "Error: the minimal coverage for BLAST should be an integer between 0 and 100\n"
         return error
 
-    if args.save_intermediate:
-        config.save_intermediate = True
-
     if args.no_seed:
         config.is_set_seed = False
         config.seed_num = 0
@@ -251,12 +246,6 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
 
                 if mode == "continue_all_genomes":
                     out_param.write(line)
-
-            elif re.search("^Save intermediate", line):
-                config.save_intermediate = True
-
-                if mode == "continue_all_genomes":
-                    out_param.write("\n" + line)
 
             elif re.search("^No seed", line):
                 config.is_set_seed = False

@@ -53,7 +53,6 @@ minimal_hits_num = 2
 cpu_num = 8
 
 # R - related parameters
-save_intermediate = False
 is_set_seed = True  # Whether to set a seed for the subsampling process (to have same results between different runs)
 seed_num = 1
 subsampling_lengths = [40, 60, 80, 100, 200]
