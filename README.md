@@ -23,7 +23,7 @@ Create a new conda environment using the ‘SynTracker_env.yml’ file (located 
       `conda env create -f SynTracker_env.yml`
 
 Activate the newly created environment: 
-      `conda activate SynTracker_1_2`
+      `conda activate SynTracker_1_3`
 
 
 ## Input

@@ -347,7 +347,7 @@ def main():
                                                                 config.flanking_length, config.minimal_flanking_length,
                                                                 config.minimal_full_length,
                                                                 config.minimal_identity, config.minimal_coverage,
-                                                                config.blast_num_threads))
+                                                                config.blast_num_threads, config.logfile_path))
                         # Start the process
                         process.start()
 

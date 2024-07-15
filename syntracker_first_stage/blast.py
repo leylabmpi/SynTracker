@@ -1,42 +1,47 @@
-from Bio.Blast.Applications import NcbimakeblastdbCommandline
-from Bio.Blast.Applications import NcbiblastnCommandline
+#from Bio.Blast.Applications import NcbimakeblastdbCommandline
+#from Bio.Blast.Applications import NcbiblastnCommandline
 import os
 import sys
 import csv
 import re
 import config
+import subprocess
 
 
 def make_blast_db(logfile):
 
     input_file = config.combined_renamed_genomes_file_path
 
-    command = NcbimakeblastdbCommandline(input_file=input_file, out=config.blast_db_file_path, dbtype="nucl",
-                                         parse_seqids=True, title=config.blast_db_file)
+    command = "makeblastdb -in " + input_file + " -dbtype nucl -title " + config.blast_db_file + "  -parse_seqids -out " \
+              + config.blast_db_file_path
+
     print("\nExecuting the following BLAST command:")
     print(command)
-    logfile = open(config.logfile_path, "a")
-    logfile.write("\nExecuting the following BLAST command:\n" + str(command) + "\n")
-    logfile.close()
+    logfile.write("\nExecuting the following BLAST command:\n" + command + "\n")
 
     try:
-        stdout, stderr = command()
-        print(stdout)
-    except Exception as err:
-        print("\nmakeblastdb command has failed for input file: " + input_file)
-        logfile = open(config.logfile_path, "a")
-        logfile.write("\nmakeblastdb command has failed for input file: " + input_file + "\n")
-        logfile.close()
+        subprocess.run(["makeblastdb", "-in", input_file, "-dbtype", "nucl", "-title", config.blast_db_file,
+                        "-parse_seqids", "-out", config.blast_db_file_path], check=True)
+    except subprocess.CalledProcessError as err:
+        print("\nThe following command has failed:")
+        print(command)
         print(err)
+        logfile.write("\nThe following command has failed:\n" + command + "\n")
+        exit()
+    except Exception as err:
+        print("\nThe following command has failed:")
+        print(command)
+        print(err)
+        logfile.write("\nThe following command has failed:\n" + command + "\n")
         exit()
 
-    print("...Done!")
+    print("...Done!\n")
 
 
 def blast_per_region_process(full_path_region_file, blast_region_outfile, blastdbcmd_region_outfile,
                              blastdbcmd_region_outfile_tmp, blast_db_file_path, flanking_length,
                              minimal_flanking_length, minimal_full_length, minimal_identity, minimal_coverage,
-                             num_threads):
+                             num_threads, logfile_path):
 
     # Run blast for each region
     exit_code = run_blastn(full_path_region_file, blast_region_outfile, blast_db_file_path, minimal_identity,
@@ -60,7 +65,7 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
                 end = row[2]
                 strand = row[3]
 
-                m = re.search("^(Sample\.\d+)_contig", sample_name)
+                m = re.search(r'^(Sample\.\d+)_contig', sample_name)
                 if m:
                     sample_name_only = m.group(1)
 
@@ -130,25 +135,43 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
         else:
             print("\nBLAST output file " + blast_region_outfile + " contains less than two valid samples - "
                                                                   "skip it...\n")
+            logfile = open(logfile_path, "a")
+            logfile.write("\nBLAST output file " + blast_region_outfile + " contains less than two valid samples - "
+                                                                  "skip it...\n")
+            logfile.close()
             sys.exit(1)
 
     # The BLAST outfile contains less than 2 hits -> return failure for this region
     else:
         print("\nBLAST output file " + blast_region_outfile + " contains less than two samples - skip it...\n")
+        logfile = open(logfile_path, "a")
+        logfile.write("\nBLAST output file " + blast_region_outfile + " contains less than two valid samples - "
+                                                                      "skip it...\n")
+        logfile.close()
         sys.exit(1)
 
 
 def run_blastn(query_file, outfile, blast_db_file_path, minimal_identity, minimal_coverage, num_threads):
-    command = NcbiblastnCommandline(query=query_file, db=blast_db_file_path, out=outfile,
-                                    outfmt="6 sseqid sstart send sstrand",
-                                    max_target_seqs=10000, perc_identity=minimal_identity,
-                                    qcov_hsp_perc=minimal_coverage, num_threads=num_threads)
+
+    command = "blastn -query " + query_file + " -db " + blast_db_file_path + " -out " + outfile + \
+              " -outfmt 6 sseqid sstart send sstrand -max_target_seqs 10000 -perc_identity " + str(minimal_identity) + \
+              " -qcov_hsp_perc " + str(minimal_coverage) + " -num_threads " + str(num_threads)
 
     try:
-        command()
+        subprocess.run(["blastn", "-query", query_file, "-db", blast_db_file_path, "-out", outfile,
+                        "-outfmt", "6 sseqid sstart send sstrand", "-max_target_seqs", "10000",
+                        "-perc_identity", str(minimal_identity), "-qcov_hsp_perc", str(minimal_coverage), "-num_threads"
+                        , str(num_threads)], check=True)
+
+    except subprocess.CalledProcessError as err:
+        print("\nThe following command has failed:")
+        print(command)
+        print(err)
+        return 1
+
     except Exception as err:
         print("\nThe following command has failed:")
-        print(str(command))
+        print(command)
         print(err)
         return 1
 

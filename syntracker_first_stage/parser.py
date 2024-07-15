@@ -192,7 +192,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
         in_processed_genomes_list = 0
         for line in read_conf:
             if re.search("^Reference genomes directory:", line):
-                m = re.search("^Reference.+:\s(\S+)\n", line)
+                m = re.search(r'^Reference.+: (\S+)\n', line)
                 if m:
                     ref_dir = m.group(1)
 
@@ -200,7 +200,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     out_param.write("\n" + line)
 
             elif re.search("^Target", line):
-                m = re.search("^Target.+:\s(\S+)\n", line)
+                m = re.search(r'^Target.+: (\S+)\n', line)
                 if m:
                     target_dir = m.group(1)
 
@@ -208,7 +208,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     out_param.write("\n" + line)
 
             elif re.search("^Output", line):
-                m = re.search("^Output.+:\s(\S+)\n", line)
+                m = re.search(r'^Output.+: (\S+)\n', line)
                 if m:
                     output_dir = m.group(1)
 
@@ -216,7 +216,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     out_param.write("\n" + line)
 
             elif re.search("^Metadata", line):
-                m = re.search("^Metadata.+:\s(\S+)\n", line)
+                m = re.search(r'^Metadata.+: (\S+)\n', line)
                 if m:
                     metadata_file = m.group(1)
 
@@ -224,7 +224,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     out_param.write("\n" + line)
 
             elif re.search("^Full", line):
-                m = re.search("^Full.+:\s(\d+)\n", line)
+                m = re.search(r'^Full.+: (\d+)\n', line)
                 if m:
                     full_length = m.group(1)
 
@@ -232,7 +232,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     out_param.write("\n" + line)
 
             elif re.search("^Minimal coverage", line):
-                m = re.search("^Minimal coverage:\s(\d+)\n", line)
+                m = re.search(r'^Minimal coverage: (\d+)\n', line)
                 if m:
                     minimal_coverage = m.group(1)
 
@@ -240,7 +240,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     out_param.write("\n" + line)
 
             elif re.search("^Minimal identity", line):
-                m = re.search("^Minimal identity:\s(\d+)\n", line)
+                m = re.search(r'^Minimal identity: (\d+)\n', line)
                 if m:
                     minimal_identity = m.group(1)
 
@@ -267,8 +267,8 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     out_param.write("\n" + line)
                     out_param.write("--------------------\n\n")
 
-            elif re.search("^\S+\t\S+\n", line) and in_ref_genomes_list and in_processed_genomes_list == 0:
-                m = re.search("^(\S+)\t(\S+)\n", line)
+            elif re.search(r'^\S+\t\S+\n', line) and in_ref_genomes_list and in_processed_genomes_list == 0:
+                m = re.search(r'^(\S+)\t(\S+)\n', line)
                 genome_name = m.group(1)
                 genome_file = m.group(2)
                 config.genomes_dict[genome_name] = dict()
@@ -293,7 +293,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                     break
 
             elif re.search("^ref_genome:", line) and in_processed_genomes_list:
-                m = re.search("^ref_genome:\s+(\S+)\n$", line)
+                m = re.search(r'^ref_genome:\s+(\S+)\n$', line)
                 current_genome_name = m.group(1)
 
             elif re.search("BLAST finished", line) and in_processed_genomes_list:
