@@ -179,3 +179,10 @@ is called `avg_synteny_scores_all_regions.csv`.
 
 The directory ‘Sample_Data/Output_example/’, which is included in the SynTracker package, contains the output of a SynTracker’s run, using the sample input data with default parameters. It can facilitate the user in better understanding the structure of the output directories and files.
 
+## Citation
+
+If you use SynTracker please cite:  
+
+**Strain tracking in complex microbiomes using synteny analysis reveals per-species modes of evolution.**  
+Enav H, Paz I and Ley RE.  
+Nature Biotechnology (2024). DOI: https://doi.org/10.1038/s41587-024-02276-2
