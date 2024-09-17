@@ -95,9 +95,10 @@ python syntracker.py -out SynTracker_output/ -mode continue_all_genomes
 
 ```
 python syntracker.py [-h] [-target target_directory_path] [-ref ref_directory_path] 
-                     [-out output_directory_path] [-metadata metadata_file] 
-                     [-mode 'new'/'continue'] [-cores number_of_cores] [-length region_length] 
-                     [--identity blast_identity] [--coverage blast_coverage] [--no_seed] [--avg_all]
+                     [-out output_directory_path] [-mode 'new'/'continue'] 
+                     [-cores number_of_cores] [-length region_length] 
+                     [--identity blast_identity] [--coverage blast_coverage] 
+                     [--no_seed] [--avg_all]
 
 options:
   -h, --help        show this help message and exit
@@ -114,9 +115,6 @@ options:
                     already exists, it will be written over). When running in 'continue' mode, it is mandatory to provide the
                     path to the output directory of the run that is requested to be continued.
                     
-  -metadata [metadata_file]
-                    Path to a metadata file (optional). The file should be in CSV format and must include the sample ID.
-  
   -mode ['new'/'continue'/'continue_all_genomes']  
                     The running mode: 'new' or 'continue' (default='new'). 
                     Start a new run or continue a previous run that has been terminated.

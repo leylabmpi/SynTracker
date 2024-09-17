@@ -23,9 +23,6 @@ def parse_arguments():
                              "When running in mode 'continue' or 'continue_all_genomes', it is mandatory to provide "
                              "the path to the output directory of the run that is requested to be continued.",
                         type=str, default=config.output_dir)
-    parser.add_argument("-metadata", metavar="metadata_file",
-                        help="Path to a metadata file (optional). The file should be in CSV format and must include "
-                             "the sample ID.", type=str)
     parser.add_argument("-mode", metavar="'new'/'continue'/'continue_all_genomes'",
                         help="The running mode. Start a new run or continue a previous run that has been terminated (default='new').\n"
                              "'continue' mode: continue from the last reference genome that was previously processed.\n"
@@ -117,20 +114,6 @@ def parse_arguments():
                     "folder of the run that you wish to continue.\n"
             return error
 
-    # Set the metadata file (if any)
-    if args.metadata is not None:
-        config.metadata_file_path = args.metadata
-        config.is_metadata = True
-
-        # Not absolute path -> turn it into absolute
-        if not os.path.isabs(config.metadata_file_path):
-            config.metadata_file_path = os.path.abspath(config.metadata_file_path) + "/"
-        # Absolute path
-        else:
-            # Add ending slash
-            if not re.search(r"^(\S+)\/$", config.metadata_file_path):
-                config.metadata_file_path += "/"
-
     # Set the cpu number parameter
     if args.cores is not None and args.cores > 0:
         config.cpu_num = args.cores
@@ -172,7 +155,6 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
     ref_dir = ""
     target_dir = ""
     output_dir = ""
-    metadata_file = ""
     full_length = ""
     minimal_coverage = ""
     minimal_identity = ""
@@ -211,14 +193,6 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                 m = re.search(r'^Output.+: (\S+)\n', line)
                 if m:
                     output_dir = m.group(1)
-
-                if mode == "continue_all_genomes":
-                    out_param.write("\n" + line)
-
-            elif re.search("^Metadata", line):
-                m = re.search(r'^Metadata.+: (\S+)\n', line)
-                if m:
-                    metadata_file = m.group(1)
 
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
@@ -321,10 +295,6 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
     else:
         error = "The output directory is not written in the config file."
         return error
-
-    if metadata_file != "":
-        config.is_metadata = True
-        config.metadata_file_path = metadata_file
 
     if full_length != "":
         config.full_length = int(full_length)

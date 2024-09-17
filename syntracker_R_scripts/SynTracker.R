@@ -4,9 +4,6 @@ library(tidyverse)
 library(parallel)
 library(tools)
 
-###### functions file ######
-#source("syntracker_R_scripts/SynTracker_functions.R")
-
 ############
 # fucntions
 ###########
@@ -152,7 +149,6 @@ subsample_regions<-function(big_organized_dfs, subsampling_value, set_seed_arg) 
     sample_n(subsampling_value) %>% #subsample "subsampling_value" regions from each group
     mutate(regions = n()) %>%
     summarise(Average_score=mean(Synteny_score), Compared_regions=mean(regions)) %>%
-    #mutate(ref_genome=genome_name, .before = sample1)
   return(newdf)
 }
 ###########################################################################################################################
@@ -169,19 +165,9 @@ intermediate_file_folder <- args[7] # In continue mode, it contains the previous
 set_seed_arg <- as.integer(args[8]) # an integer to set the seed (if 0 - do not use seed)
 avg_all_regions <- args[9] # If it's True, add an output table without subsampling
 core_number <- as.integer(args[10])
-metadata_file <- args[11] # If not empty - the path of the metadata file (if empty - there is no metadata)
-logfile <- args[12] # The path of the logfile
+logfile <- args[11] # The path of the logfile
 
 ######################################################################################################
-
-# If the user gave a metadata file, read it
-if(metadata_file=='NA') {
-    metadata=NA
-    print("Running analysis without Metadata")
-} else {
-    metadata<-read.csv(file=metadata_file, sep=";", header = TRUE)
-    print("Running analysis with Metadata file")
-}
 
 # Define an empty list for the synteny scores per region dfs
 synteny_scores_dfs_total <- list()
@@ -271,13 +257,17 @@ big_organized_dfs_final<-big_organized_dfs %>% select(sample1, sample2, ref_geno
 dplyr::rename(Sample1="sample1", Sample2="sample2",  Region="ref_genome_region",  Length1="length1",  Length2="length2",  Overlap="overlap", Blocks="blocks", Synteny_score="syn_score") %>%
 dplyr::distinct()
 
-genome_big_table_path<-paste0(output_folder, genome_name , "_synteny_scores_per_region.csv")
-write.table(big_organized_dfs_final, file=genome_big_table_path, sep=",", row.names = FALSE)
+#genome_big_table_path<-paste0(output_folder, genome_name , "_synteny_scores_per_region.csv")
+#write.table(big_organized_dfs_final, file=genome_big_table_path, sep=",", row.names = FALSE)
 
 # Add a column for the ref genome in the final table
-summary_organized_dfs<-big_organized_dfs_final %>% mutate(ref_genome=genome_name, .before = Sample1)
+summary_organized_dfs<-big_organized_dfs_final %>% mutate(Ref_genome=genome_name, .before = Sample1)
 
-# Append the per-genome big table to the main table, that contains all the ref-genomes together
+# Save the genome-specific final table to a file
+genome_big_table_path<-paste0(output_folder, genome_name , "_synteny_scores_per_region.csv")
+write.table(summary_organized_dfs, file=genome_big_table_path, sep=",", row.names = FALSE)
+
+# Append the genome-specific final table to the main table, that contains all the ref-genomes together
 summary_table_path<-paste0(output_summary_folder, "synteny_scores_per_region.csv")
 write.table(summary_organized_dfs, file=summary_table_path, sep=",", row.names = FALSE, col.names=FALSE, append=TRUE)
 
@@ -299,8 +289,8 @@ for (i in 1:length(regions_sampled)) {
     if(biggest_group >= regions_sampled[i]){
         grouped_df<-as.data.frame(mapply(subsample_regions, list(big_organized_dfs_final), regions_sampled[i], set_seed_arg, SIMPLIFY = F))
 
-        write.table(grouped_df, file=paste(output_folder, genome_name, "_avg_synteny_scores_", regions_sampled[i], "_regions.csv", sep=""), row.names=FALSE, sep=",")
-        grouped_df_with_genome<-grouped_df %>% mutate(ref_genome=genome_name, .before = Sample1)
+        grouped_df_with_genome<-grouped_df %>% mutate(Ref_genome=genome_name, .before = Sample1)
+        write.table(grouped_df_with_genome, file=paste(output_folder, genome_name, "_avg_synteny_scores_", regions_sampled[i], "_regions.csv", sep=""), row.names=FALSE, sep=",")
         write.table(grouped_df_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_", regions_sampled[i], "_regions.csv", sep=""),
         row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
     }
@@ -313,8 +303,9 @@ if (avg_all_regions == 'True'){
     mutate(regions = n()) %>%
     summarise(Average_score=mean(Synteny_score), Compared_regions=mean(regions))
 
-    write.table(grouped_df_avg_all, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.csv", sep=""), row.names=FALSE, sep=",")
-    grouped_df_all_with_genome<-grouped_df_avg_all %>% mutate(ref_genome=genome_name, .before = Sample1)
+    #write.table(grouped_df_avg_all, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.csv", sep=""), row.names=FALSE, sep=",")
+    grouped_df_all_with_genome<-grouped_df_avg_all %>% mutate(Ref_genome=genome_name, .before = Sample1)
+    write.table(grouped_df_all_with_genome, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.csv", sep=""), row.names=FALSE, sep=",")
     write.table(grouped_df_all_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_all_regions.csv", sep=""),
     row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
 }

@@ -33,8 +33,6 @@ blast_db_file = "GroupsDB"
 blast_db_file_path = ""
 blast_out_dir = "blast_output/"
 blastdbcmd_out_dir = "blastdbcmd_output/"
-is_metadata = False
-metadata_file_path = ""
 
 # Central regions related parameters
 region_length = 1000

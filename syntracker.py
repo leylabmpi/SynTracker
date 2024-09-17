@@ -75,8 +75,6 @@ def main():
         out_param.write("\nReference genomes directory: " + config.input_ref_dir + "\n")
         out_param.write("\nTarget genomes directory: " + config.input_target_dir + "\n")
         out_param.write("\nOutput directory: " + config.main_output_path + "\n")
-        if config.is_metadata:
-            out_param.write("\nMetadata file path: " + config.metadata_file_path + "\n")
         out_param.write("\nFull regions length: " + str(config.full_length) + "\n")
         out_param.write("\nMinimal coverage: " + str(config.minimal_coverage) + "\n")
         out_param.write("Minimal identity: " + str(config.minimal_identity) + "\n")
@@ -468,16 +466,11 @@ def main():
             logfile.write("\nStarting synteny analysis for genome " + ref_genome + "\n")
             logfile.close()
 
-            if config.metadata_file_path == "":
-                metadata_file_path = "NA"
-            else:
-                metadata_file_path = config.metadata_file_path
-
             command = "Rscript " + config.R_script + " " + ref_genome + " " + \
                         config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + \
                         final_output_path + " " + config.summary_output_path + " " + r_temp_path + " " + \
                         intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.avg_all) + " " + \
-                        str(config.cpu_num) + " " + metadata_file_path + " " + config.logfile_path
+                        str(config.cpu_num) + " " + config.logfile_path
             print("\nRunning the following Rscript command:\n" + command + "\n")
             logfile = open(config.logfile_path, "a")
             logfile.write("\nRunning the following Rscript command:\n" + command + "\n")
@@ -488,7 +481,7 @@ def main():
                                 config.sample_dictionary_table_path,
                                 genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path,
                                 r_temp_path, intermediate_objects_path, str(config.seed_num), str(config.avg_all),
-                                str(config.cpu_num), metadata_file_path, config.logfile_path], check=True)
+                                str(config.cpu_num), config.logfile_path], check=True)
             except subprocess.CalledProcessError as err:
                 print("\nThe following command has failed:")
                 print(command)
