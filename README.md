@@ -43,10 +43,6 @@ If genomes are to be compared, each genome will be stored in a single fasta file
 All files should be stored in the same directory (refered below as the "target directory"). 
 
 The directory `Sample_Data/output_example/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.
-   
-#### Metadata file (optional): 
-In addition to the mandatory input, the user can also provide a metadata file, which contains information regarding the genomes/assemblies that should be compared. 
-The metadata file should be a tab delimited file. One of the columns should contain the sample ID, which is identical to the naming of the fasta files in the "target folder".
 
 #### Sample input:
 
