@@ -180,3 +180,8 @@ If you use SynTracker please cite:
 **Strain tracking in complex microbiomes using synteny analysis reveals per-species modes of evolution.**  
 Enav H, Paz I and Ley RE.  
 Nature Biotechnology (2024). DOI: https://doi.org/10.1038/s41587-024-02276-2
+
+## Contact
+
+If you encounter a problem or need some advising in running your specific dataset, please send an email to:
+hagay.enav@tuebingen.mpg.de or inbal.paz@tuebingen.mpg.de .
