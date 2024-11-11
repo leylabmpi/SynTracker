@@ -33,6 +33,8 @@ blast_db_file = "GroupsDB"
 blast_db_file_path = ""
 blast_out_dir = "blast_output/"
 blastdbcmd_out_dir = "blastdbcmd_output/"
+is_syntracker_makeDB_dir = False
+syntracker_makeDB_dir = ""
 
 # Central regions related parameters
 region_length = 1000
@@ -57,7 +59,6 @@ subsampling_lengths = [40, 60, 80, 100, 200]
 subsampled_regions_file_names = []
 for i in range(len(subsampling_lengths)):
     subsampled_regions_file_names.append("avg_synteny_scores_" + str(subsampling_lengths[i]) + "_regions.csv")
-avg_all = False  # Whether to add non-subsampled output (average all the regions per pair of samples)
 avg_all_file_name = "avg_synteny_scores_all_regions.csv"
 
 # Run related parameters

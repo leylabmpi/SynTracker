@@ -12,8 +12,8 @@ def make_blast_db(logfile):
 
     input_file = config.combined_renamed_genomes_file_path
 
-    command = "makeblastdb -in " + input_file + " -dbtype nucl -title " + config.blast_db_file + "  -parse_seqids -out " \
-              + config.blast_db_file_path
+    command = "makeblastdb -in " + input_file + " -dbtype nucl -title " + config.blast_db_file + \
+              "  -parse_seqids -out " + config.blast_db_file_path
 
     print("\nExecuting the following BLAST command:")
     print(command)

@@ -73,15 +73,16 @@ def main():
         out_param.write("Running Parameters:\n")
         out_param.write("--------------------\n")
         out_param.write("\nReference genomes directory: " + config.input_ref_dir + "\n")
-        out_param.write("\nTarget genomes directory: " + config.input_target_dir + "\n")
+        if config.is_syntracker_makeDB_dir is False:
+            out_param.write("\nTarget genomes directory: " + config.input_target_dir + "\n")
+        else:
+            out_param.write("\nsyntracker_makeDB directory: " + config.syntracker_makeDB_dir + "\n")
         out_param.write("\nOutput directory: " + config.main_output_path + "\n")
         out_param.write("\nFull regions length: " + str(config.full_length) + "\n")
         out_param.write("\nMinimal coverage: " + str(config.minimal_coverage) + "\n")
         out_param.write("Minimal identity: " + str(config.minimal_identity) + "\n")
         if config.is_set_seed is False:
             out_param.write("No seed\n")
-        if config.avg_all:
-            out_param.write("Average all regions\n")
 
         ############################################
         # Create a directory for the summary output (all genomes together)
@@ -102,53 +103,68 @@ def main():
         for file_name in config.subsampled_regions_file_names:
             file_path = config.summary_output_path + file_name
             out_subsampled = open(file_path, "w")
-            out_subsampled.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"Average_score\",\"Compared_regions\"\n")
+            out_subsampled.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"APSS\",\"Compared_regions\"\n")
             out_subsampled.close()
 
-        # If the user added the --avg_all option, create also a file for the average-all-regions output
-        if config.avg_all:
-            file_path = config.summary_output_path + config.avg_all_file_name
-            out_avg_all = open(file_path, "w")
-            out_avg_all.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"Average_score\",\"Compared_regions\"\n")
-            out_avg_all.close()
+        # Create also a file for the average-all-regions output
+        file_path = config.summary_output_path + config.avg_all_file_name
+        out_avg_all = open(file_path, "w")
+        out_avg_all.write("\"Ref_genome\",\"Sample1\",\"Sample2\",\"APSS\",\"Compared_regions\"\n")
+        out_avg_all.close()
 
-        ################################################################
-        # Take care of the naming issues of the target genomes:
-        # a. change sample names (i.e., assemblies/genomes) to Sample.xxx
-        # b. change fasta headers to contig.xxx
-        # c. merge fasta files to one file
-        # d. create a table with old and new names.
-        print("\nStart merging metagnome-assemblies / genome files\n")
-        logfile.write("\nStart merging metagnome-assemblies / genome files\n")
+        # Check whether the user provided a blastDB directory that has already been created by syntracker_makeDB.
+        # In this case, assign the correct paths and skip the following two stages
+        if config.is_syntracker_makeDB_dir:
+            config.combined_output_path = config.syntracker_makeDB_dir + config.combined_output_dir
+            config.combined_renamed_genomes_file_path = config.combined_output_path + config.combined_renamed_genomes
+            config.dictionary_table_full_path = config.combined_output_path + config.dictionary_table_full
+            config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
+            config.blast_db_path = config.syntracker_makeDB_dir + config.blast_db_dir
+            config.blast_db_file_path = config.blast_db_path + config.blast_db_file
 
-        # Create a folder for the combined targets
-        config.combined_output_path = config.main_output_path + config.combined_output_dir
-        try:
-            os.makedirs(config.combined_output_path)
-        except OSError:
-            print("\nmkdir " + config.combined_output_path + "has failed")
-            exit()
-        config.combined_renamed_genomes_file_path = config.combined_output_path + config.combined_renamed_genomes
-        config.dictionary_table_full_path = config.combined_output_path + config.dictionary_table_full
-        config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
+            print("\nThe stage of making blastDB has already been performed in a previous run. Skipping this stage...\n")
+            logfile.write("The stage of making blastDB has already been performed by syntracker_makeDB.py. "
+                          "Skipping this stage...\n")
+            config.complete_target_merge = True
 
-        tr.create_unique_names(logfile)
+        else:
+            ################################################################
+            # Take care of the naming issues of the target genomes:
+            # a. change sample names (i.e., assemblies/genomes) to Sample.xxx
+            # b. change fasta headers to contig.xxx
+            # c. merge fasta files to one file
+            # d. create a table with old and new names.
+            print("\nStart merging metagnome-assemblies / genome files\n")
+            logfile.write("\nStart merging metagnome-assemblies / genome files\n")
 
-        print("\nMerging metagnome-assemblies / genome files is complete")
-        logfile.write("Merging metagnome-assemblies / genome files is complete\n")
-        config.complete_target_merge = True
+            # Create a folder for the combined targets
+            config.combined_output_path = config.main_output_path + config.combined_output_dir
+            try:
+                os.makedirs(config.combined_output_path)
+            except OSError:
+                print("\nmkdir " + config.combined_output_path + "has failed")
+                exit()
+            config.combined_renamed_genomes_file_path = config.combined_output_path + config.combined_renamed_genomes
+            config.dictionary_table_full_path = config.combined_output_path + config.dictionary_table_full
+            config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
 
-        #########################################################
-        # Make a blast database from all the contigs.
-        config.blast_db_path = config.main_output_path + config.blast_db_dir
-        try:
-            os.makedirs(config.blast_db_path)
-        except OSError:
-            print("\nmkdir " + config.blast_db_path + "has failed")
-            exit()
+            tr.create_unique_names(logfile)
 
-        config.blast_db_file_path = config.blast_db_path + config.blast_db_file
-        blast.make_blast_db(logfile)
+            print("\nMerging metagnome-assemblies / genome files is complete")
+            logfile.write("Merging metagnome-assemblies / genome files is complete\n")
+            config.complete_target_merge = True
+
+            #########################################################
+            # Make a blast database from all the contigs.
+            config.blast_db_path = config.main_output_path + config.blast_db_dir
+            try:
+                os.makedirs(config.blast_db_path)
+            except OSError:
+                print("\nmkdir " + config.blast_db_path + "has failed")
+                exit()
+
+            config.blast_db_file_path = config.blast_db_path + config.blast_db_file
+            blast.make_blast_db(logfile)
 
         ##############################################################################
         # Extract the reference genomes from the user-defined directory
@@ -202,14 +218,29 @@ def main():
             print("Cannot continue the previous run - please rerun your dataset from the beginning (-mode 'new')")
             exit()
 
+        ##############################
         # Assign all the global paths
-        config.combined_output_path = config.main_output_path + config.combined_output_dir
+
+        # Continue a run with a given external directory, created by syntracker_makeDB - set the path accordingly
+        if config.is_syntracker_makeDB_dir:
+            config.combined_output_path = config.syntracker_makeDB_dir + config.combined_output_dir
+            config.blast_db_path = config.syntracker_makeDB_dir + config.blast_db_dir
+
+            print("\nis_syntracker_makeDB_dir = True")
+            print("syntracker_makeDB_dir: " + config.syntracker_makeDB_dir)
+
+        # Continue a normal run - all the subdirectories are located under the main output dir
+        else:
+            config.combined_output_path = config.main_output_path + config.combined_output_dir
+            config.blast_db_path = config.main_output_path + config.blast_db_dir
+
+            print("\nis_syntracker_makeDB_dir = False")
+
+        config.summary_output_path = config.main_output_path + config.summary_output_dir
         config.combined_renamed_genomes_file_path = config.combined_output_path + config.combined_renamed_genomes
         config.dictionary_table_full_path = config.combined_output_path + config.dictionary_table_full
         config.sample_dictionary_table_path = config.combined_output_path + config.sample_dictionary_table
-        config.blast_db_path = config.main_output_path + config.blast_db_dir
         config.blast_db_file_path = config.blast_db_path + config.blast_db_file
-        config.summary_output_path = config.main_output_path + config.summary_output_dir
 
         # Add the genomes that were not processed to the list of genomes that should be processed in the current run
         counter = 0
@@ -429,9 +460,9 @@ def main():
             if config.running_mode == "new":
 
                 # If the R final output dir already exists - delete it and its content
-                if os.path.exists(final_output_path):
-                    print("\nDirectory " + final_output_path + " already exists - deleting its content")
-                    shutil.rmtree(final_output_path)
+                #if os.path.exists(final_output_path):
+                #    print("\nDirectory " + final_output_path + " already exists - deleting its content")
+                #    shutil.rmtree(final_output_path)
                 # Create a new R final output dir
                 try:
                     os.makedirs(final_output_path)
@@ -440,9 +471,9 @@ def main():
                     exit()
 
                 # If the R temporary files dir already exists - delete it and its content
-                if os.path.exists(r_temp_path):
-                    print("\nDirectory " + r_temp_path + " already exists - deleting its content")
-                    shutil.rmtree(r_temp_path)
+                #if os.path.exists(r_temp_path):
+                #    print("\nDirectory " + r_temp_path + " already exists - deleting its content")
+                #    shutil.rmtree(r_temp_path)
                 # Create a new R temporary files dir
                 try:
                     os.makedirs(r_temp_path)
@@ -451,14 +482,41 @@ def main():
                     exit()
 
                 # If the R intermediate objects dir already exists - delete it and its content
-                if os.path.exists(intermediate_objects_path):
-                    print("\nDirectory " + intermediate_objects_path + " already exists - deleting its content")
-                    shutil.rmtree(intermediate_objects_path)
+                #if os.path.exists(intermediate_objects_path):
+                #    print("\nDirectory " + intermediate_objects_path + " already exists - deleting its content")
+                #    shutil.rmtree(intermediate_objects_path)
                 # Create a new R intermediate objects dir
                 try:
                     os.makedirs(intermediate_objects_path)
                 except OSError:
                     print("\nmkdir " + intermediate_objects_path + "has failed - cannot save R intermediate objects")
+
+            # One of the continue modes - Create the directories if they don't exist yet
+            else:
+
+                # Create the final output directory
+                if not os.path.exists(final_output_path):
+                    try:
+                        os.makedirs(final_output_path)
+                    except OSError:
+                        print("\nmkdir " + final_output_path + "has failed")
+                        exit()
+
+                # Create a new R temporary files dir
+                if not os.path.exists(r_temp_path):
+                    try:
+                        os.makedirs(r_temp_path)
+                    except OSError:
+                        print("\nmkdir " + r_temp_path + "has failed")
+                        exit()
+
+                # Create a new R intermediate objects dir
+                if not os.path.exists(intermediate_objects_path):
+                    try:
+                        os.makedirs(intermediate_objects_path)
+                    except OSError:
+                        print(
+                            "\nmkdir " + intermediate_objects_path + "has failed - cannot save R intermediate objects")
 
             # Run the R script for the synteny analysis of the current reference genome
             print("\nStarting synteny analysis for genome " + ref_genome + "\n")
@@ -469,7 +527,7 @@ def main():
             command = "Rscript " + config.R_script + " " + ref_genome + " " + \
                         config.sample_dictionary_table_path + " " + genome_blastdbcmd_out_dir + " " + \
                         final_output_path + " " + config.summary_output_path + " " + r_temp_path + " " + \
-                        intermediate_objects_path + " " + str(config.seed_num) + " " + str(config.avg_all) + " " + \
+                        intermediate_objects_path + " " + str(config.seed_num) + " " + \
                         str(config.cpu_num) + " " + config.logfile_path
             print("\nRunning the following Rscript command:\n" + command + "\n")
             logfile = open(config.logfile_path, "a")
@@ -480,7 +538,7 @@ def main():
                 subprocess.run(["Rscript", config.R_script, ref_genome,
                                 config.sample_dictionary_table_path,
                                 genome_blastdbcmd_out_dir, final_output_path, config.summary_output_path,
-                                r_temp_path, intermediate_objects_path, str(config.seed_num), str(config.avg_all),
+                                r_temp_path, intermediate_objects_path, str(config.seed_num),
                                 str(config.cpu_num), config.logfile_path], check=True)
             except subprocess.CalledProcessError as err:
                 print("\nThe following command has failed:")

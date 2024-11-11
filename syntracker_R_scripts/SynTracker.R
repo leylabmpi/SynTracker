@@ -135,7 +135,7 @@ add_names<-function(dfs, names) {
 # inputs:
 # 1. big_organized_dfs = dataframe that holds per-region pairwise comparisons (multiple regions, multiple pairs)
 # 2. subsampling_value = how many regions/pairwise to sample.
-# output: dataframe with APSS values (col name is "average_score"), based on "subsampling_value" regions per pair. Pairs with <"subsampling_value" regions are filtererd out.
+# output: dataframe with APSS values (col name is "APSS"), based on "subsampling_value" regions per pair. Pairs with <"subsampling_value" regions are filtererd out.
 subsample_regions<-function(big_organized_dfs, subsampling_value, set_seed_arg) {
   if(set_seed_arg != 0) {
     set.seed(set_seed_arg)
@@ -148,7 +148,7 @@ subsample_regions<-function(big_organized_dfs, subsampling_value, set_seed_arg) 
     filter(n() > subsampling_value-1) %>%
     sample_n(subsampling_value) %>% #subsample "subsampling_value" regions from each group
     mutate(regions = n()) %>%
-    summarise(Average_score=mean(Synteny_score), Compared_regions=mean(regions)) %>%
+    summarise(APSS=mean(Synteny_score), Compared_regions=mean(regions)) %>%
   return(newdf)
 }
 ###########################################################################################################################
@@ -163,9 +163,8 @@ output_summary_folder <- args[5] # The destination folder for the summary output
 tmp_folder <- args[6] # A temporary folder for the db files - should be deleted in the end
 intermediate_file_folder <- args[7] # In continue mode, it contains the previously processed regions (if any)
 set_seed_arg <- as.integer(args[8]) # an integer to set the seed (if 0 - do not use seed)
-avg_all_regions <- args[9] # If it's True, add an output table without subsampling
-core_number <- as.integer(args[10])
-logfile <- args[11] # The path of the logfile
+core_number <- as.integer(args[9])
+logfile <- args[10] # The path of the logfile
 
 ######################################################################################################
 
@@ -296,19 +295,16 @@ for (i in 1:length(regions_sampled)) {
     }
 }
 
-# Create an additional output table without subsampling if the user has requested for it
-if (avg_all_regions == 'True'){
-    grouped_df_avg_all<-big_organized_dfs_final %>%
-    group_by(Sample1, Sample2) %>%
-    mutate(regions = n()) %>%
-    summarise(Average_score=mean(Synteny_score), Compared_regions=mean(regions))
+# Create an additional output table without subsampling
+grouped_df_avg_all<-big_organized_dfs_final %>%
+group_by(Sample1, Sample2) %>%
+mutate(regions = n()) %>%
+summarise(APSS=mean(Synteny_score), Compared_regions=mean(regions))
 
-    #write.table(grouped_df_avg_all, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.csv", sep=""), row.names=FALSE, sep=",")
-    grouped_df_all_with_genome<-grouped_df_avg_all %>% mutate(Ref_genome=genome_name, .before = Sample1)
-    write.table(grouped_df_all_with_genome, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.csv", sep=""), row.names=FALSE, sep=",")
-    write.table(grouped_df_all_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_all_regions.csv", sep=""),
-    row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
-}
+grouped_df_all_with_genome<-grouped_df_avg_all %>% mutate(Ref_genome=genome_name, .before = Sample1)
+write.table(grouped_df_all_with_genome, file=paste(output_folder, genome_name, "_avg_synteny_scores_all_regions.csv", sep=""), row.names=FALSE, sep=",")
+write.table(grouped_df_all_with_genome, file=paste(output_summary_folder, "avg_synteny_scores_all_regions.csv", sep=""),
+row.names=FALSE, col.names=FALSE, append=TRUE, sep=",")
 
 unlink(tmp_folder, recursive = T)
 

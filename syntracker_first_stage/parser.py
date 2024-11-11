@@ -24,10 +24,19 @@ def parse_arguments():
                              "the path to the output directory of the run that is requested to be continued.",
                         type=str, default=config.output_dir)
     parser.add_argument("-mode", metavar="'new'/'continue'/'continue_all_genomes'",
-                        help="The running mode. Start a new run or continue a previous run that has been terminated (default='new').\n"
+                        help="The running mode. Start a new run or continue a previous run that has been terminated "
+                             "(default='new').\n"
                              "'continue' mode: continue from the last reference genome that was previously processed.\n"
-                             "'continue_all_genomes' mode: process all the reference genomes again, without repeating the stage in which a blast database is built from the target genomes.",
+                             "'continue_all_genomes' mode: process all the reference genomes again, without repeating "
+                             "the stage in which a blast database is built from the target genomes.",
                         type=str, default=config.running_mode)
+    parser.add_argument("-blastDB", metavar="blastDB_directory_path",
+                        help="The path to the directory which was previously created by syntracker_makeDB.py "
+                             "and contains the uniquely renamed target genomes and the blastDB.\n"
+                             "This is an advanced optional argument to be used when the blastDB has already been "
+                             "created by syntracker_makeDB.py. When using it, there is no need to provide the "
+                             "'-target' argument.",
+                        type=str)
     parser.add_argument("-cores", metavar="number_of_cores",
                         help="The number of cores to use for the parallelization of the BLAST-related stages. "
                              "(Optional, default is the number of computer available cores).",
@@ -46,10 +55,6 @@ def parse_arguments():
                         "the average synteny scores may change between SynTracker runs. This is an optional parameter. "
                         "By default, a seed=1 is set to enable reproducibility between different runs.",
                         action='store_true', default=False)
-    parser.add_argument("--avg_all", help="Create an additional output table with APSS (Average Pairwise Synteny "
-                                          "Scores), which are based on all the available regions per each pair of "
-                                          "samples (in addition to the output tables, based on the subsampling of n "
-                                          "regions).", action='store_true', default=False)
 
     # Parse the given arguments
     args = parser.parse_args()
@@ -65,23 +70,39 @@ def parse_arguments():
 
     # Verify the mandatory arguments in 'new' mode
     if config.running_mode == "new":
-        # Verify that the user provided a target directory
-        if args.target is not None:
-            input_target_dir = args.target
+        if args.blastDB is not None:
+            blastDB_dir = args.blastDB
 
             # Not absolute path -> turn it into absolute
-            if not os.path.isabs(input_target_dir):
-                config.input_target_dir = os.path.abspath(input_target_dir) + "/"
+            if not os.path.isabs(blastDB_dir):
+                config.syntracker_makeDB_dir = os.path.abspath(blastDB_dir) + "/"
             # Absolute path
             else:
-                config.input_target_dir = input_target_dir
+                config.syntracker_makeDB_dir = blastDB_dir
                 # Add ending slash
-                if not re.search(r"^(\S+)\/$", input_target_dir):
-                    config.input_target_dir += "/"
+                if not re.search(r"^(\S+)\/$", config.syntracker_makeDB_dir):
+                    config.syntracker_makeDB_dir += "/"
+
+            config.is_syntracker_makeDB_dir = True
+
         else:
-            error = "Error: you must provide a path to the target folder which contains metagenome assemblies or " \
-                    "genomes (using -target)\n"
-            return error
+            # Verify that the user provided a target directory
+            if args.target is not None:
+                input_target_dir = args.target
+
+                # Not absolute path -> turn it into absolute
+                if not os.path.isabs(input_target_dir):
+                    config.input_target_dir = os.path.abspath(input_target_dir) + "/"
+                # Absolute path
+                else:
+                    config.input_target_dir = input_target_dir
+                    # Add ending slash
+                    if not re.search(r"^(\S+)\/$", input_target_dir):
+                        config.input_target_dir += "/"
+            else:
+                error = "Error: you must provide a path to the target folder which contains metagenome assemblies or " \
+                        "genomes (using -target)\n"
+                return error
 
         # Verify that the user provided a reference directory
         if args.ref is not None:
@@ -144,23 +165,12 @@ def parse_arguments():
         config.is_set_seed = False
         config.seed_num = 0
 
-    if args.avg_all:
-        config.avg_all = True
-
     return error
 
 
 def read_conf_file(old_conf_file, new_conf_file, mode):
 
-    ref_dir = ""
-    target_dir = ""
-    output_dir = ""
-    full_length = ""
-    minimal_coverage = ""
-    minimal_identity = ""
-    seed = ""
     current_genome_name = ""
-    error = ""
 
     # In 'continue_all_genomes', the file should be written again without the list of processed genomes
     if mode == "continue_all_genomes":
@@ -176,7 +186,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
             if re.search("^Reference genomes directory:", line):
                 m = re.search(r'^Reference.+: (\S+)\n', line)
                 if m:
-                    ref_dir = m.group(1)
+                    config.input_ref_dir = m.group(1)
 
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
@@ -184,15 +194,25 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
             elif re.search("^Target", line):
                 m = re.search(r'^Target.+: (\S+)\n', line)
                 if m:
-                    target_dir = m.group(1)
+                    config.input_target_dir = m.group(1)
 
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
 
+            elif re.search("^syntracker_makeDB", line):
+                m = re.search(r'^syntracker_makeDB.+: (\S+)\n', line)
+                if m:
+                    config.syntracker_makeDB_dir = m.group(1)
+
+                if mode == "continue_all_genomes":
+                    out_param.write("\n" + line)
+
+                config.is_syntracker_makeDB_dir = True
+
             elif re.search("^Output", line):
                 m = re.search(r'^Output.+: (\S+)\n', line)
                 if m:
-                    output_dir = m.group(1)
+                    config.main_output_path = m.group(1)
 
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
@@ -202,6 +222,11 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                 if m:
                     full_length = m.group(1)
 
+                config.full_length = int(full_length)
+                config.flanking_length = (config.full_length - config.region_length) / 2
+                config.minimal_flanking_length = config.flanking_length * 0.9
+                config.minimal_full_length = config.full_length * 0.9
+
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
 
@@ -209,6 +234,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                 m = re.search(r'^Minimal coverage: (\d+)\n', line)
                 if m:
                     minimal_coverage = m.group(1)
+                config.minimal_coverage = int(minimal_coverage)
 
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
@@ -217,6 +243,7 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                 m = re.search(r'^Minimal identity: (\d+)\n', line)
                 if m:
                     minimal_identity = m.group(1)
+                config.minimal_identity = int(minimal_identity)
 
                 if mode == "continue_all_genomes":
                     out_param.write(line)
@@ -227,9 +254,6 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
 
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
-
-            elif re.search("^Average all", line):
-                config.avg_all = True
 
                 if mode == "continue_all_genomes":
                     out_param.write("\n" + line)
@@ -277,46 +301,6 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
                 config.genomes_dict[genome_name]['finished_R'] = 1
                 config.genomes_dict[current_genome_name]['processed'] = 1
 
-    # Verify that all the parameters were written in the file. If not, print error. If yes, save them in the config
-    if ref_dir != "":
-        config.input_ref_dir = ref_dir
-    else:
-        error = "The reference genomes directory is not written in the config file."
-        return error
-
-    if target_dir != "":
-        config.input_target_dir = target_dir
-    else:
-        error = "The target genomes directory is not written in the config file."
-        return error
-
-    if output_dir != "":
-        config.main_output_path = output_dir
-    else:
-        error = "The output directory is not written in the config file."
-        return error
-
-    if full_length != "":
-        config.full_length = int(full_length)
-        config.flanking_length = (config.full_length - config.region_length) / 2
-        config.minimal_flanking_length = config.flanking_length * 0.9
-        config.minimal_full_length = config.full_length * 0.9
-    else:
-        error = "The full region length is not written in the config file."
-        return error
-
-    if minimal_coverage != "":
-        config.minimal_coverage = int(minimal_coverage)
-    else:
-        error = "The minimal coverage is not written in the config file."
-        return error
-
-    if minimal_identity != "":
-        config.minimal_identity = int(minimal_identity)
-    else:
-        error = "The minimal identity is not written in the config file."
-        return error
-
     # Verify that there is at least one reference genome and that input files exist
     genomes_counter = 0
     for genome in config.genomes_dict:
@@ -331,6 +315,3 @@ def read_conf_file(old_conf_file, new_conf_file, mode):
 
     return ""
 
-
-def write_conf_file_without_processed_genomes(conf_file):
-    pass
