@@ -1,4 +1,4 @@
-"Ref_genome","Sample1","Sample2","Average_score","Compared_regions"
+"Ref_genome","Sample1","Sample2","APSS","Compared_regions"
 "E_coli_K-12_MG1655","ASM15512v1","ASM17195v1",0.970648281428632,100
 "E_coli_K-12_MG1655","ASM15512v1","ASM2222v1",0.988920473138213,100
 "E_coli_K-12_MG1655","ASM15512v1","ASM2516v1",0.978161328114248,100
