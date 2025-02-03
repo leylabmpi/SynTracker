@@ -23,7 +23,7 @@ Create a new conda environment using the ‘SynTracker_env.yml’ file (located 
       `conda env create -f SynTracker_env.yml`
 
 Activate the newly created environment: 
-      `conda activate SynTracker_1_3`
+      `conda activate SynTracker_1_4`
 
 
 ## Input
@@ -42,7 +42,7 @@ These data should be organized in per-sample assembly files - i.e., all the cont
 If genomes are to be compared, each genome will be stored in a single fasta file. 
 All files should be stored in the same directory (refered below as the "target directory"). 
 
-The directory `Sample_Data/output_example/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.
+The directory `Sample_Data/Input_example/Target_genomes/` contains a collection of target genomes, for the purpuse of self testing the instalation.
 
 #### Sample input:
 

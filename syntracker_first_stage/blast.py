@@ -1,5 +1,3 @@
-#from Bio.Blast.Applications import NcbimakeblastdbCommandline
-#from Bio.Blast.Applications import NcbiblastnCommandline
 import os
 import sys
 import csv
