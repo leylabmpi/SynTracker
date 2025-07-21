@@ -26,20 +26,18 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
     cat("\nRunning synteny analysis using Decipher for region ", region_name, sep = "\n" )
     seqs <- readDNAStringSet(inpath)
     db<-paste0(tmp_folder,region_name)
-    flag<-0
-    for (i in seq_along(seqs)) {
-        # The following line adds sequences to the DECIPHER DB:
-        ###########################
-        #   IMPORTANT:
-        # SPLITTING THE names(seqs[i]) yields the "sample.xxx" from the fasta header of the sequence - therefore only one sequence per sample will be used.
-        # If the str_split is removed, potentially more than one contig per sample can be compared - i.e,, substrains in the same sample.
-        Seqs2DB(seqs[i], "XStringSet", db, str_split(names(seqs[i]), "_")[[1]][1])
-        ###########################
-        flag<-flag+1
-    }
+    seq_num <- length(seqs)
 
     # only run DECIPHER analysis if we have more than 1 sequence matching this specific region.
-    if (flag>1) {
+    if (seq_num > 1) {
+
+        # Precompute the names for better efficiency
+        prefixes <- str_extract(names(seqs), "^[^_]+")
+
+        # Enter the sequences sequencially to the DB, using Seqs2DB command (from Decipher)
+        for (i in seq_along(seqs)) {
+            Seqs2DB(seqs[i], "XStringSet", db, prefixes[i])
+        }
 
         try_catch <- function(exprs) {!inherits(try(eval(exprs)), "try-error")}
 
@@ -65,7 +63,7 @@ synteny_analysis_per_region<-function(inpath, region_name, tmp_folder, intermedi
         cat("\nCannot perform synteny analysis for region", region_name, "- only one hit was found\n", sep = " ")
         cat("\nCannot perform synteny analysis for region", region_name, "- only one hit was found\n", sep = " ", file=logfile, append=TRUE)
         # Remove the DECIPHER db file
-        unlink(db)
+        #unlink(db)
         # Add a '_done' suffix to the region-specific file in the blastdbcmd folder
         # (so this region will not be analysed again in case the user repeats the run in continue mode)
         file.rename(inpath, paste0(inpath,"_done"))

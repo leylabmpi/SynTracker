@@ -459,10 +459,6 @@ def main():
             # Only in 'new' mode, delete all the previous R directories if any
             if config.running_mode == "new":
 
-                # If the R final output dir already exists - delete it and its content
-                #if os.path.exists(final_output_path):
-                #    print("\nDirectory " + final_output_path + " already exists - deleting its content")
-                #    shutil.rmtree(final_output_path)
                 # Create a new R final output dir
                 try:
                     os.makedirs(final_output_path)
@@ -470,10 +466,6 @@ def main():
                     print("\nmkdir " + final_output_path + "has failed")
                     exit()
 
-                # If the R temporary files dir already exists - delete it and its content
-                #if os.path.exists(r_temp_path):
-                #    print("\nDirectory " + r_temp_path + " already exists - deleting its content")
-                #    shutil.rmtree(r_temp_path)
                 # Create a new R temporary files dir
                 try:
                     os.makedirs(r_temp_path)
@@ -481,10 +473,6 @@ def main():
                     print("\nmkdir " + r_temp_path + "has failed")
                     exit()
 
-                # If the R intermediate objects dir already exists - delete it and its content
-                #if os.path.exists(intermediate_objects_path):
-                #    print("\nDirectory " + intermediate_objects_path + " already exists - deleting its content")
-                #    shutil.rmtree(intermediate_objects_path)
                 # Create a new R intermediate objects dir
                 try:
                     os.makedirs(intermediate_objects_path)
@@ -559,11 +547,12 @@ def main():
 
             after = time.time()
             duration = after - before
-            #print("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
+            print("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
 
         # Mark this ref-genome as finished and write in the config.txt file that the synteny stage was finished
         print("\nThe processing of genome " + ref_genome + " completed successfully\n")
         logfile = open(config.logfile_path, "a")
+        logfile.write("\nThe synteny scores calculation stage took " + str(duration) + " seconds.\n")
         logfile.write("\nThe processing of genome " + ref_genome + " completed successfully\n")
         logfile.close()
         out_param = open(config.conf_file_path, "a")
