@@ -92,38 +92,40 @@ def blast_per_region_process(full_path_region_file, blast_region_outfile, blastd
             valid_hits_per_region_counter = 0
 
             for sample in hits_by_sample_dict:
-                sample_name = hits_by_sample_dict[sample]["sample_name"]
-                start = hits_by_sample_dict[sample]["start"]
-                end = hits_by_sample_dict[sample]["end"]
-                strand = hits_by_sample_dict[sample]["strand"]
+                # Continue with valid samples only
+                if hits_by_sample_dict[sample]["valid"]:
+                    sample_name = hits_by_sample_dict[sample]["sample_name"]
+                    start = hits_by_sample_dict[sample]["start"]
+                    end = hits_by_sample_dict[sample]["end"]
+                    strand = hits_by_sample_dict[sample]["strand"]
 
-                # Plus strand
-                if strand == "plus":
-                    flank_start = int(start) - int(flanking_length)
-                    flank_end = int(end) + int(flanking_length)
-                # Minus strand
-                else:
-                    flank_start = int(end) - int(flanking_length)
-                    flank_end = int(start) + int(flanking_length)
-
-                # If the flanking-start is a negative value
-                if flank_start <= 0:
-                    # If the upstream length meets the minimal flanking length, take this sequence
-                    # and change the start position to 1
-                    if abs(flank_start) < flanking_length - minimal_flanking_length:
-                        flank_start = 1
-                    # The overall upstream length is shorter than the minimal flanking length -> ignore the sequence
+                    # Plus strand
+                    if strand == "plus":
+                        flank_start = int(start) - int(flanking_length)
+                        flank_end = int(end) + int(flanking_length)
+                    # Minus strand
                     else:
-                        continue
+                        flank_start = int(end) - int(flanking_length)
+                        flank_end = int(start) + int(flanking_length)
 
-                # Run blastdbcmd to get the hit including flanking sequences from the database
-                exit_code = run_blastdbcmd(sample_name, str(flank_start), str(flank_end), strand, minimal_full_length,
-                                           blastdbcmd_region_outfile, blastdbcmd_region_outfile_tmp, blast_db_file_path)
+                    # If the flanking-start is a negative value
+                    if flank_start <= 0:
+                        # If the upstream length meets the minimal flanking length, take this sequence
+                        # and change the start position to 1
+                        if abs(flank_start) < flanking_length - minimal_flanking_length:
+                            flank_start = 1
+                        # The overall upstream length is shorter than the minimal flanking length -> ignore the sequence
+                        else:
+                            continue
 
-                if exit_code == 0:
-                    valid_hits_per_region_counter += 1
-                else:
-                    sys.exit(1)
+                    # Run blastdbcmd to get the hit including flanking sequences from the database
+                    exit_code = run_blastdbcmd(sample_name, str(flank_start), str(flank_end), strand, minimal_full_length,
+                                               blastdbcmd_region_outfile, blastdbcmd_region_outfile_tmp, blast_db_file_path)
+
+                    if exit_code == 0:
+                        valid_hits_per_region_counter += 1
+                    else:
+                        sys.exit(1)
 
             # End of loop - if there are less than 2 valid hits, fail this region
             if valid_hits_per_region_counter < 2:
